@@ -12,25 +12,25 @@ import com.yyon.grapplinghook.network.serverbound.PlayerMovementMessage;
 import com.yyon.grapplinghook.util.GrappleCustomization;
 import com.yyon.grapplinghook.util.GrappleModUtils;
 import com.yyon.grapplinghook.util.Vec;
-import net.minecraft.client.Minecraft;
-import net.minecraft.core.BlockPos;
-import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.SoundType;
-import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.phys.BlockHitResult;
-import net.minecraft.world.phys.shapes.VoxelShape;
 import org.joml.Vector3d;
 
 import java.util.HashSet;
+import net.minecraft.block.Block;
+import net.minecraft.block.BlockState;
+import net.minecraft.client.MinecraftClient;
+import net.minecraft.entity.Entity;
+import net.minecraft.entity.LivingEntity;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.sound.BlockSoundGroup;
+import net.minecraft.util.hit.BlockHitResult;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.shape.VoxelShape;
+import net.minecraft.world.World;
 
 
 public class GrappleController {
 	public int entityId;
-	public Level world;
+	public World world;
 	public Entity entity;
 	
 	public HashSet<GrapplehookEntity> grapplehookEntities = new HashSet<>();
@@ -58,7 +58,7 @@ public class GrappleController {
 	
 	public GrappleCustomization custom = null;
 	
-	public GrappleController(int grapplehookEntityId, int entityId, Level world, int controllerId, GrappleCustomization custom) {
+	public GrappleController(int grapplehookEntityId, int entityId, World world, int controllerId, GrappleCustomization custom) {
 		this.entityId = entityId;
 		this.world = world;
 		this.custom = custom;
@@ -70,11 +70,11 @@ public class GrappleController {
 		
 		this.controllerId = controllerId;
 		
-		this.entity = world.getEntity(entityId);
+		this.entity = world.getEntityById(entityId);
 		this.motion = Vec.motionVec(entity);
 		
 		// undo friction
-		Vec newmotion = new Vec(entity.position().x - entity.xOld, entity.position().y - entity.yOld, entity.position().z - entity.zOld);
+		Vec newmotion = new Vec(entity.getPos().x - entity.lastRenderX, entity.getPos().y - entity.lastRenderY, entity.getPos().z - entity.lastRenderZ);
 		if (newmotion.x/motion.x < 2 && motion.x/newmotion.x < 2 && newmotion.y/motion.y < 2 && motion.y/newmotion.y < 2 && newmotion.z/motion.z < 2 && motion.z/newmotion.z < 2) {
 			this.motion = newmotion;
 		}
@@ -82,7 +82,7 @@ public class GrappleController {
 		this.onGroundTimer = 0;
 
 		if (grapplehookEntityId != -1) {
-			Entity grapplehookEntity = world.getEntity(grapplehookEntityId);
+			Entity grapplehookEntity = world.getEntityById(grapplehookEntityId);
 			if (grapplehookEntity != null && grapplehookEntity.isAlive() && grapplehookEntity instanceof GrapplehookEntity) {
 				this.addHookEntity((GrapplehookEntity)grapplehookEntity);
 			} else {
@@ -102,7 +102,7 @@ public class GrappleController {
 			
 			if (this.controllerId != GrappleModUtils.AIR_FRICTION_ID) {
 				NetworkManager.packetToServer(new GrappleEndMessage(this.entityId, this.grapplehookEntityIds));
-				GrappleModClient.get().createControl(GrappleModUtils.AIR_FRICTION_ID, -1, this.entityId, this.entity.level, new Vec(0,0,0), null, this.custom);
+				GrappleModClient.get().createControl(GrappleModUtils.AIR_FRICTION_ID, -1, this.entityId, this.entity.world, new Vec(0,0,0), null, this.custom);
 			}
 		}
 	}
@@ -124,7 +124,7 @@ public class GrappleController {
 		playerStrafe = strafe;
 		playerSneak = sneak;
 		playerMovementUnrotated = new Vec(strafe, 0, forward);
-		playerMovement = playerMovementUnrotated.rotateYaw((float) (this.entity.getYRot() * (Math.PI / 180.0)));
+		playerMovement = playerMovementUnrotated.rotateYaw((float) (this.entity.getYaw() * (Math.PI / 180.0)));
 	}
 	
 	public void updatePlayerPos() {
@@ -143,7 +143,7 @@ public class GrappleController {
 				this.applyAirFriction();
 
 				Vec playerpos = Vec.positionVec(entity);
-				playerpos = playerpos.add(new Vec(0, entity.getEyeHeight(), 0));
+				playerpos = playerpos.add(new Vec(0, entity.getStandingEyeHeight(), 0));
 
 
 				Vec additionalmotion = new Vec(0,0,0);
@@ -218,15 +218,15 @@ public class GrappleController {
 					this.calcTaut(dist, hookEntity);
 
 					// handle keyboard input (jumping and climbing)
-					if (entity instanceof Player) {
-						Player player = (Player) entity;
+					if (entity instanceof PlayerEntity) {
+						PlayerEntity player = (PlayerEntity) entity;
 						boolean isjumping = GrappleModClient.get().isKeyDown(GrappleKeys.key_jumpanddetach);
 						isjumping = isjumping && !playerJump; // only jump once when key is first pressed
 						playerJump = GrappleModClient.get().isKeyDown(GrappleKeys.key_jumpanddetach);
 						if (isjumping) {
 							// jumping
 							if (onGroundTimer >= 0) {
-								double timer = GrappleModClient.get().getTimeSinceLastRopeJump(this.entity.level);
+								double timer = GrappleModClient.get().getTimeSinceLastRopeJump(this.entity.world);
 								if (timer > GrappleConfig.getConf().grapplinghook.other.rope_jump_cooldown_s * 20.0) {
 									doJump = true;
 									jumpSpeed = this.getJumpPower(player, spherevec, hookEntity);
@@ -287,7 +287,7 @@ public class GrappleController {
 				}
 				averagemotiontowards.changeLen_ip(1);
 
-				Vec facing = new Vec(entity.getLookAngle()).normalize();
+				Vec facing = new Vec(entity.getRotationVector()).normalize();
 
 				// Motor
 				if (motor) {
@@ -471,7 +471,7 @@ public class GrappleController {
 
 				// forcefield
 				if (this.custom.repel) {
-					Vec blockpush = checkRepel(playerpos, entity.level);
+					Vec blockpush = checkRepel(playerpos, entity.world);
 					blockpush.mult_ip(this.custom.repelforce * 0.5);
 					blockpush = new Vec(blockpush.x*0.5, blockpush.y*2, blockpush.z*0.5);
 					this.motion.add_ip(blockpush);
@@ -496,7 +496,7 @@ public class GrappleController {
 						jumpSpeed = GrappleConfig.getConf().grapplinghook.other.rope_jump_power;
 					}
 					this.doJump(entity, jumpSpeed, averagemotiontowards, min_spherevec_dist);
-					GrappleModClient.get().resetRopeJumpTime(this.entity.level);
+					GrappleModClient.get().resetRopeJumpTime(this.entity.world);
 					return;
 				}
 
@@ -509,7 +509,7 @@ public class GrappleController {
 					GrappleMod.LOGGER.warn("error: motion is NaN");
 				}
 
-				entity.setDeltaMovement(newmotion.x, newmotion.y, newmotion.z);
+				entity.setVelocity(newmotion.x, newmotion.y, newmotion.z);
 
 				this.updateServerPos();
 			}
@@ -533,12 +533,12 @@ public class GrappleController {
 	public void normalCollisions(boolean sliding) {
 		// stop if collided with object
 		if (entity.horizontalCollision) {
-			if (entity.getDeltaMovement().x == 0) {
+			if (entity.getVelocity().x == 0) {
 				if (!sliding || this.tryStepUp(new Vec(this.motion.x, 0, 0))) {
 					this.motion.x = 0;
 				}
 			}
-			if (entity.getDeltaMovement().z == 0) {
+			if (entity.getVelocity().z == 0) {
 				if (!sliding || this.tryStepUp(new Vec(0, 0, this.motion.z))) {
 					this.motion.z = 0;
 				}
@@ -546,18 +546,18 @@ public class GrappleController {
 		}
 		
 		if (sliding && !entity.horizontalCollision) {
-			if (entity.position().x - entity.xOld == 0) {
+			if (entity.getPos().x - entity.lastRenderX == 0) {
 				this.motion.x = 0;
 			}
-			if (entity.position().z - entity.zOld == 0) {
+			if (entity.getPos().z - entity.lastRenderZ == 0) {
 				this.motion.z = 0;
 			}
 		}
 		
 		if (entity.verticalCollision) {
 			if (entity.isOnGround()) {
-				if (!sliding && Minecraft.getInstance().options.keyJump.isDown()) {
-					this.motion.y = entity.getDeltaMovement().y;
+				if (!sliding && MinecraftClient.getInstance().options.jumpKey.isPressed()) {
+					this.motion.y = entity.getVelocity().y;
 				} else {
 					if (this.motion.y < 0) {
 						this.motion.y = 0;
@@ -565,7 +565,7 @@ public class GrappleController {
 				}
 			} else {
 				if (this.motion.y > 0) {
-					if (entity.yOld == entity.position().y) {
+					if (entity.lastRenderY == entity.getPos().y) {
 						this.motion.y = 0;
 					}
 				}
@@ -575,16 +575,16 @@ public class GrappleController {
 	
 	public boolean tryStepUp(Vec collisionmotion) {
 		if (collisionmotion.length() == 0) {return false;}
-		Vec moveoffset = collisionmotion.changeLen(0.05).add(0, entity.maxUpStep() + 0.01, 0);
-		Iterable<VoxelShape> collisions = this.entity.level.getCollisions(this.entity, this.entity.getBoundingBox().move(moveoffset.x, moveoffset.y, moveoffset.z));
+		Vec moveoffset = collisionmotion.changeLen(0.05).add(0, entity.getStepHeight() + 0.01, 0);
+		Iterable<VoxelShape> collisions = this.entity.world.getCollisions(this.entity, this.entity.getBoundingBox().offset(moveoffset.x, moveoffset.y, moveoffset.z));
 		if (!collisions.iterator().hasNext()) {
 			if (!this.entity.isOnGround()) {
 				Vec pos = Vec.positionVec(entity);
 				pos.add_ip(moveoffset);
 				pos.setPos(entity);
-				entity.xOld = pos.x;
-				entity.yOld = pos.y;
-				entity.zOld = pos.z;
+				entity.lastRenderX = pos.x;
+				entity.lastRenderY = pos.y;
+				entity.lastRenderZ = pos.z;
 			}
 			entity.horizontalCollision = false;
 			return false;
@@ -637,7 +637,7 @@ public class GrappleController {
 			if (GrappleConfig.getConf().grapplinghook.other.rope_jump_at_angle && min_spherevec_dist > 1) {
 				motion.add_ip(averagemotiontowards.changeLen(jumppower));
 			} else {
-				if (jumppower > player.getDeltaMovement().y + jumppower) {
+				if (jumppower > player.getVelocity().y + jumppower) {
 					motion.y = jumppower;
 				} else {
 					motion.y += jumppower;
@@ -662,7 +662,7 @@ public class GrappleController {
 		if (spherevec != null && spherevec.y > 0) {
 			jumppower = 0;
 		}
-		if ((hookEntity != null) && hookEntity.r < 1 && (player.position().y < hookEntity.position().y)) {
+		if ((hookEntity != null) && hookEntity.r < 1 && (player.getPos().y < hookEntity.getPos().y)) {
 			jumppower = maxjump;
 		}
 
@@ -685,7 +685,7 @@ public class GrappleController {
 	}
 	
 	public void updateServerPos() {
-		NetworkManager.packetToServer(new PlayerMovementMessage(this.entityId, this.entity.position().x, this.entity.position().y, this.entity.position().z, this.entity.getDeltaMovement().x, this.entity.getDeltaMovement().y, this.entity.getDeltaMovement().z));
+		NetworkManager.packetToServer(new PlayerMovementMessage(this.entityId, this.entity.getPos().x, this.entity.getPos().y, this.entity.getPos().z, this.entity.getVelocity().x, this.entity.getVelocity().y, this.entity.getVelocity().z));
 	}
 	
 	// Vector stuff:
@@ -701,7 +701,7 @@ public class GrappleController {
 	
 	public void applyAirFriction() {
 		double dragforce = 1 / 200F;
-		if (this.entity.isInWater() || this.entity.isInLava()) {
+		if (this.entity.isTouchingWater() || this.entity.isInLava()) {
 			dragforce = 1 / 4F;
 		}
 		
@@ -719,21 +719,21 @@ public class GrappleController {
 
 	public void addHookEntity(GrapplehookEntity hookEntity) {
 		this.grapplehookEntities.add(hookEntity);
-		hookEntity.r = hookEntity.segmentHandler.getDist(Vec.positionVec(hookEntity), Vec.positionVec(entity).add(new Vec(0, entity.getEyeHeight(), 0)));
+		hookEntity.r = hookEntity.segmentHandler.getDist(Vec.positionVec(hookEntity), Vec.positionVec(entity).add(new Vec(0, entity.getStandingEyeHeight(), 0)));
 		this.grapplehookEntityIds.add(hookEntity.getId());
 	}
 	
     public double repelMaxPush = 0.3;
 	
     // repel stuff
-    public Vec checkRepel(Vec p, Level w) {
+    public Vec checkRepel(Vec p, World w) {
     	
     	p = p.add(0.0, 0.75, 0.0);
     	Vec v = new Vec(0, 0, 0);
     	
     	double t = (1.0 + Math.sqrt(5.0)) / 2.0;
     	
-		BlockPos pos = BlockPos.containing(p.x, p.y, p.z);
+		BlockPos pos = BlockPos.ofFloored(p.x, p.y, p.z);
 
 		if (hasBlock(pos, w)) {
 			v.add_ip(0, 1, 0);
@@ -761,10 +761,10 @@ public class GrappleController {
 		return v;
 	}
     
-    public Vec vecDist(Vec p, Vec v, Level w) {
+    public Vec vecDist(Vec p, Vec v, World w) {
     	for (double i = 0.5; i < 10; i += 0.5) {
     		Vec v2 = v.changeLen(i);
-    		BlockPos pos = BlockPos.containing(p.x + v2.x, p.y + v2.y, p.z + v2.z);
+    		BlockPos pos = BlockPos.ofFloored(p.x + v2.x, p.y + v2.y, p.z + v2.z);
     		if (hasBlock(pos, w)) {
     			Vec v3 = new Vec(pos.getX() + 0.5 - p.x, pos.getY() + 0.5 - p.y, pos.getZ() + 0.5 - p.z);
     			v3.changeLen_ip(-1 / Math.pow(v3.length(), 2));
@@ -775,7 +775,7 @@ public class GrappleController {
     	return new Vec(0, 0, 0);
     }
     
-	public boolean hasBlock(BlockPos pos, Level w) {
+	public boolean hasBlock(BlockPos pos, World w) {
     	BlockState blockstate = w.getBlockState(pos);
 //    	Block b = blockstate.getBlock();
     	if (blockstate.isAir()) {
@@ -813,8 +813,8 @@ public class GrappleController {
 		if (GrappleModClient.get().isKeyDown(GrappleKeys.key_rocket)) {
 			rocket_on = GrappleModClient.get().getRocketFunctioning();
 			double rocket_force = this.custom.rocket_force * 0.225 * rocket_on;
-        	double yaw = entity.getYRot();
-        	double pitch = -entity.getXRot();
+        	double yaw = entity.getYaw();
+        	double pitch = -entity.getPitch();
         	pitch += this.custom.rocket_vertical_angle;
         	Vec force = new Vec(0, 0, rocket_force);
         	force = force.rotatePitch(Math.toRadians(pitch));
@@ -833,10 +833,10 @@ public class GrappleController {
 	BlockHitResult wallrunRaytraceResult = null;
 	
 	public Vec getNearbyWall(Vec tryfirst, Vec trysecond, double extra) {
-		float entitywidth = this.entity.getBbWidth();
+		float entitywidth = this.entity.getWidth();
 		
 		for (Vec direction : new Vec[] {tryfirst, trysecond, tryfirst.mult(-1), trysecond.mult(-1)}) {
-			BlockHitResult raytraceresult = GrappleModUtils.rayTraceBlocks(this.entity, this.entity.level, Vec.positionVec(this.entity), Vec.positionVec(this.entity).add(direction.changeLen(entitywidth/2 + extra)));
+			BlockHitResult raytraceresult = GrappleModUtils.rayTraceBlocks(this.entity, this.entity.world, Vec.positionVec(this.entity), Vec.positionVec(this.entity).add(direction.changeLen(entitywidth/2 + extra)));
 			if (raytraceresult != null) {
 				wallrunRaytraceResult = raytraceresult;
 				return direction;
@@ -877,7 +877,7 @@ public class GrappleController {
 	}
 	
 	public boolean wallNearby(double dist) {
-		float entitywidth = this.entity.getBbWidth();
+		float entitywidth = this.entity.getWidth();
 		Vec v1 = new Vec(entitywidth/2 + dist, 0, 0);
 		Vec v2 = new Vec(0, 0, entitywidth/2 + dist);
 		
@@ -885,7 +885,7 @@ public class GrappleController {
 			Vec corner1 = getCorner(i, v1, v2);
 			Vec corner2 = getCorner((i + 1) % 4, v1, v2);
 			
-			BlockHitResult raytraceresult = GrappleModUtils.rayTraceBlocks(this.entity, this.entity.level, Vec.positionVec(this.entity).add(corner1), Vec.positionVec(this.entity).add(corner2));
+			BlockHitResult raytraceresult = GrappleModUtils.rayTraceBlocks(this.entity, this.entity.world, Vec.positionVec(this.entity).add(corner1), Vec.positionVec(this.entity).add(corner2));
 			if (raytraceresult != null) {
 				return true;
 			}
@@ -911,7 +911,7 @@ public class GrappleController {
 			if (!(playerSneak)) {
 				// continue wallrun
 				if (isOnWall && !this.entity.isOnGround() && this.entity.horizontalCollision) {
-					if (entity instanceof LivingEntity && ((LivingEntity) entity).onClimbable()) {
+					if (entity instanceof LivingEntity && ((LivingEntity) entity).isClimbing()) {
 						return false;
 					}
 					return true;
@@ -979,10 +979,10 @@ public class GrappleController {
 				if (wallrunRaytraceResult != null) {
 					BlockPos blockpos = wallrunRaytraceResult.getBlockPos();
 					
-					BlockState blockState = this.entity.level.getBlockState(blockpos);
+					BlockState blockState = this.entity.world.getBlockState(blockpos);
 					Block blockIn = blockState.getBlock();
 					
-			        SoundType soundtype = blockIn.getSoundType(blockState);
+			        BlockSoundGroup soundtype = blockIn.getSoundGroup(blockState);
 
 		            this.entity.playSound(soundtype.getStepSound(), soundtype.getVolume() * 0.30F * GrappleConfig.getClientConf().sounds.wallrun_sound_volume, soundtype.getPitch());
 					ticksSinceLastWallrunSoundEffect = 0;

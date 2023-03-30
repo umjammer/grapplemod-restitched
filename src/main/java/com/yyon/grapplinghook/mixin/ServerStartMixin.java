@@ -11,17 +11,17 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 @Mixin(MinecraftServer.class)
 public abstract class ServerStartMixin {
 
-    @Shadow public abstract void setFlightAllowed(boolean set);
+    @Shadow public abstract void setFlightEnabled(boolean set);
 
     @Inject(method = "runServer()V",
             at = @At(
                     value = "INVOKE_ASSIGN",
-                    target = "Lnet/minecraft/Util;getMillis()J",
+                    target = "Lnet/minecraft/util/Util;getMeasuringTimeMs()J",
                     shift = At.Shift.BEFORE
             ))
     public void onServerStart(CallbackInfo ci) {
         if (GrappleConfig.getConf().other.override_allowflight) {
-            this.setFlightAllowed(true);
+            this.setFlightEnabled(true);
         }
     }
 }

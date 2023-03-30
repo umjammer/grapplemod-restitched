@@ -15,21 +15,23 @@ import com.yyon.grapplinghook.util.GrappleModUtils;
 import com.yyon.grapplinghook.util.Vec;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
-import net.minecraft.client.gui.screens.Screen;
-import net.minecraft.core.BlockPos;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.network.chat.Component;
-import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.sounds.SoundEvents;
-import net.minecraft.sounds.SoundSource;
-import net.minecraft.util.Mth;
-import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.*;
-import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.state.BlockState;
-
+import net.minecraft.block.BlockState;
+import net.minecraft.client.gui.screen.Screen;
+import net.minecraft.client.item.TooltipContext;
+import net.minecraft.entity.Entity;
+import net.minecraft.entity.LivingEntity;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.item.Item;
+import net.minecraft.item.ItemStack;
+import net.minecraft.item.Items;
+import net.minecraft.nbt.NbtCompound;
+import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.sound.SoundCategory;
+import net.minecraft.sound.SoundEvents;
+import net.minecraft.text.Text;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.MathHelper;
+import net.minecraft.world.World;
 import java.util.HashMap;
 import java.util.List;
 
@@ -56,7 +58,7 @@ public class GrapplehookItem extends Item implements KeypressItem, DroppableItem
 	public static HashMap<Entity, GrapplehookEntity> grapplehookEntitiesRight = new HashMap<>();
 	
 	public GrapplehookItem() {
-		super(new Item.Properties().stacksTo(1).durability(GrappleConfig.getConf().grapplinghook.other.default_durability));
+		super(new Item.Settings().maxCount(1).maxDamage(GrappleConfig.getConf().grapplinghook.other.default_durability));
 	}
 
 	public boolean hasHookEntity(Entity entity) {
@@ -91,31 +93,31 @@ public class GrapplehookItem extends Item implements KeypressItem, DroppableItem
 	}
 
 	@Override
-	public boolean isValidRepairItem(ItemStack stack, ItemStack repair) {
+	public boolean canRepair(ItemStack stack, ItemStack repair) {
         if (repair != null && repair.getItem().equals(Items.LEATHER)) return true;
-        return super.isValidRepairItem(stack, repair);
+        return super.canRepair(stack, repair);
 	}
 
 	@Override
-	public boolean hurtEnemy(ItemStack stack, LivingEntity target, LivingEntity attacker) {
+	public boolean postHit(ItemStack stack, LivingEntity target, LivingEntity attacker) {
 		return true;
 	}
 
 	// previously: onBlockStartBreak
 	@Override
-	public boolean mineBlock(ItemStack stack, Level level, BlockState state, BlockPos pos, LivingEntity miningEntity) {
+	public boolean postMine(ItemStack stack, World level, BlockState state, BlockPos pos, LivingEntity miningEntity) {
 		return true;
 	}
 
 	@Override
-	public boolean canAttackBlock(BlockState p_195938_1_, Level p_195938_2_, BlockPos p_195938_3_,
-			Player p_195938_4_) {
+	public boolean canMine(BlockState p_195938_1_, World p_195938_2_, BlockPos p_195938_3_,
+			PlayerEntity p_195938_4_) {
 		return false;
 	}
 
 	@Override
-	public void onCustomKeyDown(ItemStack stack, Player player, KeypressItem.Keys key, boolean ismainhand) {
-		if (player.level.isClientSide) {
+	public void onCustomKeyDown(ItemStack stack, PlayerEntity player, KeypressItem.Keys key, boolean ismainhand) {
+		if (player.world.isClient) {
 			if (key == KeypressItem.Keys.LAUNCHER) {
 				if (this.getCustomization(stack).enderstaff) {
 					GrappleModClient.get().launchPlayer(player);
@@ -133,7 +135,7 @@ public class GrapplehookItem extends Item implements KeypressItem, DroppableItem
 	    	GrappleCustomization custom = this.getCustomization(stack);
 
 			if (key == KeypressItem.Keys.THROWBOTH || (!custom.doublehook && (key == KeypressItem.Keys.THROWLEFT || key == KeypressItem.Keys.THROWRIGHT))) {
-	        	throwBoth(stack, player.level, player, ismainhand);
+	        	throwBoth(stack, player.world, player, ismainhand);
 
 			} else if (key == KeypressItem.Keys.THROWLEFT) {
 				GrapplehookEntity hookLeft = getHookEntityLeft(player);
@@ -143,15 +145,15 @@ public class GrapplehookItem extends Item implements KeypressItem, DroppableItem
 		    		return;
 				}
 				
-				stack.hurtAndBreak(1, (ServerPlayer) player, (p) -> {});
+				stack.damage(1, (ServerPlayerEntity) player, (p) -> {});
 				if (stack.getCount() <= 0) {
 					return;
 				}
 				
-				boolean threw = throwLeft(stack, player.level, player, ismainhand);
+				boolean threw = throwLeft(stack, player.world, player, ismainhand);
 
 				if (threw) {
-			        player.level.playSound(null, player.position().x, player.position().y, player.position().z, SoundEvents.ARROW_SHOOT, SoundSource.NEUTRAL, 1.0F, 1.0F / (player.getRandom().nextFloat() * 0.4F + 1.2F) + 2.0F * 0.5F);
+			        player.world.playSound(null, player.getPos().x, player.getPos().y, player.getPos().z, SoundEvents.ENTITY_ARROW_SHOOT, SoundCategory.NEUTRAL, 1.0F, 1.0F / (player.getRandom().nextFloat() * 0.4F + 1.2F) + 2.0F * 0.5F);
 				}
 
 			} else if (key == KeypressItem.Keys.THROWRIGHT) {
@@ -162,21 +164,21 @@ public class GrapplehookItem extends Item implements KeypressItem, DroppableItem
 		    		return;
 				}
 				
-				stack.hurtAndBreak(1, (ServerPlayer) player, (p) -> {});
+				stack.damage(1, (ServerPlayerEntity) player, (p) -> {});
 				if (stack.getCount() <= 0) {
 					return;
 				}
 				
-				throwRight(stack, player.level, player, ismainhand);
+				throwRight(stack, player.world, player, ismainhand);
 
-		        player.level.playSound(null, player.position().x, player.position().y, player.position().z, SoundEvents.ARROW_SHOOT, SoundSource.NEUTRAL, 1.0F, 1.0F / (player.getRandom().nextFloat() * 0.4F + 1.2F) + 2.0F * 0.5F);
+		        player.world.playSound(null, player.getPos().x, player.getPos().y, player.getPos().z, SoundEvents.ENTITY_ARROW_SHOOT, SoundCategory.NEUTRAL, 1.0F, 1.0F / (player.getRandom().nextFloat() * 0.4F + 1.2F) + 2.0F * 0.5F);
 			}
 		}
 	}
 	
 	@Override
-	public void onCustomKeyUp(ItemStack stack, Player player, KeypressItem.Keys key, boolean ismainhand) {
-		if (player.level.isClientSide) {
+	public void onCustomKeyUp(ItemStack stack, PlayerEntity player, KeypressItem.Keys key, boolean ismainhand) {
+		if (player.world.isClient) {
 			if (key == KeypressItem.Keys.THROWLEFT || key == KeypressItem.Keys.THROWRIGHT || key == KeypressItem.Keys.THROWBOTH) {
 				NetworkManager.packetToServer(new KeypressMessage(key, false));
 			}
@@ -198,7 +200,7 @@ public class GrapplehookItem extends Item implements KeypressItem, DroppableItem
 		}
 	}
 
-	public void throwBoth(ItemStack stack, Level worldIn, LivingEntity entityLiving, boolean righthand) {
+	public void throwBoth(ItemStack stack, World worldIn, LivingEntity entityLiving, boolean righthand) {
 		GrapplehookEntity hookLeft = getHookEntityLeft(entityLiving);
 		GrapplehookEntity hookRight = getHookEntityRight(entityLiving);
 
@@ -207,7 +209,7 @@ public class GrapplehookItem extends Item implements KeypressItem, DroppableItem
     		return;
 		}
 
-		stack.hurtAndBreak(1, (ServerPlayer) entityLiving, (p) -> {});
+		stack.damage(1, (ServerPlayerEntity) entityLiving, (p) -> {});
 		if (stack.getCount() <= 0) {
 			return;
 		}
@@ -215,7 +217,7 @@ public class GrapplehookItem extends Item implements KeypressItem, DroppableItem
     	GrappleCustomization custom = this.getCustomization(stack);
   		double angle = custom.angle;
 //  		double verticalangle = custom.verticalthrowangle;
-  		if (entityLiving.isCrouching()) {
+  		if (entityLiving.isInSneakingPose()) {
   			angle = custom.sneakingangle;
 //  			verticalangle = custom.sneakingverticalthrowangle;
   		}
@@ -225,43 +227,43 @@ public class GrapplehookItem extends Item implements KeypressItem, DroppableItem
     	}
 		throwRight(stack, worldIn, entityLiving, righthand);
 
-		entityLiving.level.playSound(null, entityLiving.position().x, entityLiving.position().y, entityLiving.position().z, SoundEvents.ARROW_SHOOT, SoundSource.NEUTRAL, 1.0F, 1.0F / (worldIn.random.nextFloat() * 0.4F + 1.2F) + 2.0F * 0.5F);
+		entityLiving.world.playSound(null, entityLiving.getPos().x, entityLiving.getPos().y, entityLiving.getPos().z, SoundEvents.ENTITY_ARROW_SHOOT, SoundCategory.NEUTRAL, 1.0F, 1.0F / (worldIn.random.nextFloat() * 0.4F + 1.2F) + 2.0F * 0.5F);
 	}
 	
-	public boolean throwLeft(ItemStack stack, Level worldIn, LivingEntity entityLiving, boolean righthand) {
+	public boolean throwLeft(ItemStack stack, World worldIn, LivingEntity entityLiving, boolean righthand) {
     	GrappleCustomization custom = this.getCustomization(stack);
     	
   		double angle = custom.angle;
   		double verticalangle = custom.verticalthrowangle;
   		
-  		if (entityLiving.isCrouching()) {
+  		if (entityLiving.isInSneakingPose()) {
   			angle = custom.sneakingangle;
   			verticalangle = custom.sneakingverticalthrowangle;
   		}
 
 		Vec anglevec = Vec.fromAngles(Math.toRadians(-angle), Math.toRadians(verticalangle));
-  		anglevec = anglevec.rotatePitch(Math.toRadians(-entityLiving.getViewXRot(1.0F)));
-  		anglevec = anglevec.rotateYaw(Math.toRadians(entityLiving.getViewYRot(1.0F)));
-        float velx = -Mth.sin((float) anglevec.getYaw() * 0.017453292F) * Mth.cos((float) anglevec.getPitch() * 0.017453292F);
-        float vely = -Mth.sin((float) anglevec.getPitch() * 0.017453292F);
-        float velz = Mth.cos((float) anglevec.getYaw() * 0.017453292F) * Mth.cos((float) anglevec.getPitch() * 0.017453292F);
+  		anglevec = anglevec.rotatePitch(Math.toRadians(-entityLiving.getPitch(1.0F)));
+  		anglevec = anglevec.rotateYaw(Math.toRadians(entityLiving.getYaw(1.0F)));
+        float velx = -MathHelper.sin((float) anglevec.getYaw() * 0.017453292F) * MathHelper.cos((float) anglevec.getPitch() * 0.017453292F);
+        float vely = -MathHelper.sin((float) anglevec.getPitch() * 0.017453292F);
+        float velz = MathHelper.cos((float) anglevec.getYaw() * 0.017453292F) * MathHelper.cos((float) anglevec.getPitch() * 0.017453292F);
 		GrapplehookEntity hookEntity = this.createGrapplehookEntity(stack, worldIn, entityLiving, false, true);
         float extravelocity = (float) Vec.motionVec(entityLiving).distAlong(new Vec(velx, vely, velz));
         if (extravelocity < 0) { extravelocity = 0; }
-        hookEntity.shoot( velx, vely, velz, hookEntity.getVelocity() + extravelocity, 0.0F);
+        hookEntity.setVelocity( velx, vely, velz, hookEntity.getVelocity_() + extravelocity, 0.0F);
         
-		worldIn.addFreshEntity(hookEntity);
+		worldIn.spawnEntity(hookEntity);
 		setHookEntityLeft(entityLiving, hookEntity);    			
 		
 		return true;
 	}
 	
-	public void throwRight(ItemStack stack, Level worldIn, LivingEntity entityLiving, boolean righthand) {
+	public void throwRight(ItemStack stack, World worldIn, LivingEntity entityLiving, boolean righthand) {
     	GrappleCustomization custom = this.getCustomization(stack);
     	
   		double angle = custom.angle;
   		double verticalangle = custom.verticalthrowangle;
-  		if (entityLiving.isCrouching()) {
+  		if (entityLiving.isInSneakingPose()) {
   			angle = custom.sneakingangle;
   			verticalangle = custom.sneakingverticalthrowangle;
   		}
@@ -269,30 +271,30 @@ public class GrapplehookItem extends Item implements KeypressItem, DroppableItem
     	if (!custom.doublehook || angle == 0) {
 			GrapplehookEntity hookEntity = this.createGrapplehookEntity(stack, worldIn, entityLiving, righthand, false);
       		Vec anglevec = new Vec(0,0,1).rotatePitch(Math.toRadians(verticalangle));
-      		anglevec = anglevec.rotatePitch(Math.toRadians(-entityLiving.getViewXRot(1.0F)));
-      		anglevec = anglevec.rotateYaw(Math.toRadians(entityLiving.getViewYRot(1.0F)));
-	        float velx = -Mth.sin((float) anglevec.getYaw() * 0.017453292F) * Mth.cos((float) anglevec.getPitch() * 0.017453292F);
-	        float vely = -Mth.sin((float) anglevec.getPitch() * 0.017453292F);
-	        float velz = Mth.cos((float) anglevec.getYaw() * 0.017453292F) * Mth.cos((float) anglevec.getPitch() * 0.017453292F);
+      		anglevec = anglevec.rotatePitch(Math.toRadians(-entityLiving.getPitch(1.0F)));
+      		anglevec = anglevec.rotateYaw(Math.toRadians(entityLiving.getYaw(1.0F)));
+	        float velx = -MathHelper.sin((float) anglevec.getYaw() * 0.017453292F) * MathHelper.cos((float) anglevec.getPitch() * 0.017453292F);
+	        float vely = -MathHelper.sin((float) anglevec.getPitch() * 0.017453292F);
+	        float velz = MathHelper.cos((float) anglevec.getYaw() * 0.017453292F) * MathHelper.cos((float) anglevec.getPitch() * 0.017453292F);
 	        float extravelocity = (float) Vec.motionVec(entityLiving).distAlong(new Vec(velx, vely, velz));
 	        if (extravelocity < 0) { extravelocity = 0; }
-	        hookEntity.shoot(velx, vely, velz, hookEntity.getVelocity() + extravelocity, 0.0F);
+	        hookEntity.setVelocity(velx, vely, velz, hookEntity.getVelocity_() + extravelocity, 0.0F);
 			setHookEntityRight(entityLiving, hookEntity);
-			worldIn.addFreshEntity(hookEntity);
+			worldIn.spawnEntity(hookEntity);
     	} else {
 
 			Vec anglevec = Vec.fromAngles(Math.toRadians(angle), Math.toRadians(verticalangle));
-      		anglevec = anglevec.rotatePitch(Math.toRadians(-entityLiving.getViewXRot(1.0F)));
-      		anglevec = anglevec.rotateYaw(Math.toRadians(entityLiving.getViewYRot(1.0F)));
-	        float velx = -Mth.sin((float) anglevec.getYaw() * 0.017453292F) * Mth.cos((float) anglevec.getPitch() * 0.017453292F);
-	        float vely = -Mth.sin((float) anglevec.getPitch() * 0.017453292F);
-	        float velz = Mth.cos((float) anglevec.getYaw() * 0.017453292F) * Mth.cos((float) anglevec.getPitch() * 0.017453292F);
+      		anglevec = anglevec.rotatePitch(Math.toRadians(-entityLiving.getPitch(1.0F)));
+      		anglevec = anglevec.rotateYaw(Math.toRadians(entityLiving.getYaw(1.0F)));
+	        float velx = -MathHelper.sin((float) anglevec.getYaw() * 0.017453292F) * MathHelper.cos((float) anglevec.getPitch() * 0.017453292F);
+	        float vely = -MathHelper.sin((float) anglevec.getPitch() * 0.017453292F);
+	        float velz = MathHelper.cos((float) anglevec.getYaw() * 0.017453292F) * MathHelper.cos((float) anglevec.getPitch() * 0.017453292F);
 			GrapplehookEntity hookEntity = this.createGrapplehookEntity(stack, worldIn, entityLiving, true, true);
 	        float extravelocity = (float) Vec.motionVec(entityLiving).distAlong(new Vec(velx, vely, velz));
 	        if (extravelocity < 0) { extravelocity = 0; }
-	        hookEntity.shoot(velx, vely, velz, hookEntity.getVelocity() + extravelocity, 0.0F);
+	        hookEntity.setVelocity(velx, vely, velz, hookEntity.getVelocity_() + extravelocity, 0.0F);
             
-			worldIn.addFreshEntity(hookEntity);
+			worldIn.spawnEntity(hookEntity);
 			setHookEntityRight(entityLiving, hookEntity);
 		}
 	}
@@ -312,7 +314,7 @@ public class GrapplehookItem extends Item implements KeypressItem, DroppableItem
 		}
 
 		int id = entityLiving.getId();
-		GrappleModUtils.sendToCorrectClient(new GrappleDetachMessage(id), entityLiving.getId(), entityLiving.level);
+		GrappleModUtils.sendToCorrectClient(new GrappleDetachMessage(id), entityLiving.getId(), entityLiving.world);
 
 		ServerControllerManager.attached.remove(id);
 	}
@@ -330,9 +332,9 @@ public class GrapplehookItem extends Item implements KeypressItem, DroppableItem
 		
 		// remove controller if hook is attached
 		if (getHookEntityRight(entityLiving) == null) {
-			GrappleModUtils.sendToCorrectClient(new GrappleDetachMessage(id), id, entityLiving.level);
+			GrappleModUtils.sendToCorrectClient(new GrappleDetachMessage(id), id, entityLiving.world);
 		} else {
-			GrappleModUtils.sendToCorrectClient(new DetachSingleHookMessage(id, hookLeft.getId()), id, entityLiving.level);
+			GrappleModUtils.sendToCorrectClient(new DetachSingleHookMessage(id, hookLeft.getId()), id, entityLiving.world);
 		}
 
 		ServerControllerManager.attached.remove(id);
@@ -351,9 +353,9 @@ public class GrapplehookItem extends Item implements KeypressItem, DroppableItem
 		
 		// remove controller if hook is attached
 		if (getHookEntityLeft(entityLiving) == null) {
-			GrappleModUtils.sendToCorrectClient(new GrappleDetachMessage(id), id, entityLiving.level);
+			GrappleModUtils.sendToCorrectClient(new GrappleDetachMessage(id), id, entityLiving.world);
 		} else {
-			GrappleModUtils.sendToCorrectClient(new DetachSingleHookMessage(id, hookRight.getId()), id, entityLiving.level);
+			GrappleModUtils.sendToCorrectClient(new DetachSingleHookMessage(id, hookRight.getId()), id, entityLiving.world);
 		}
 
 		ServerControllerManager.attached.remove(id);
@@ -361,21 +363,21 @@ public class GrapplehookItem extends Item implements KeypressItem, DroppableItem
 	
     public double getAngle(LivingEntity entity, ItemStack stack) {
     	GrappleCustomization custom = this.getCustomization(stack);
-    	if (entity.isCrouching()) {
+    	if (entity.isInSneakingPose()) {
     		return custom.sneakingangle;
     	} else {
     		return custom.angle;
     	}
     }
 	
-	public GrapplehookEntity createGrapplehookEntity(ItemStack stack, Level worldIn, LivingEntity entityLiving, boolean righthand, boolean isdouble) {
+	public GrapplehookEntity createGrapplehookEntity(ItemStack stack, World worldIn, LivingEntity entityLiving, boolean righthand, boolean isdouble) {
 		GrapplehookEntity hookEntity = new GrapplehookEntity(worldIn, entityLiving, righthand, this.getCustomization(stack), isdouble);
 		ServerControllerManager.addGrapplehookEntity(entityLiving.getId(), hookEntity);
 		return hookEntity;
 	}
     
     public GrappleCustomization getCustomization(ItemStack itemstack) {
-    	CompoundTag tag = itemstack.getOrCreateTag();
+    	NbtCompound tag = itemstack.getOrCreateNbt();
     	
     	if (tag.contains("custom")) {
         	GrappleCustomization custom = new GrappleCustomization();
@@ -384,10 +386,10 @@ public class GrapplehookItem extends Item implements KeypressItem, DroppableItem
     	} else {
     		GrappleCustomization custom = this.getDefaultCustomization();
 
-			CompoundTag nbt = custom.writeNBT();
+			NbtCompound nbt = custom.writeNBT();
 			
 			tag.put("custom", nbt);
-			itemstack.setTag(tag);
+			itemstack.setNbt(tag);
 
     		return custom;
     	}
@@ -399,117 +401,117 @@ public class GrapplehookItem extends Item implements KeypressItem, DroppableItem
     
 	@Override
 	@Environment(EnvType.CLIENT)
-	public void appendHoverText(ItemStack stack, Level world, List<Component> list, TooltipFlag par4) {
+	public void appendTooltip(ItemStack stack, World world, List<Text> list, TooltipContext par4) {
 		GrappleCustomization custom = getCustomization(stack);
 		
 		if (Screen.hasShiftDown()) {
 			if (!custom.detachonkeyrelease) {
-				list.add(Component.literal(GrappleModKeyBindings.key_boththrow.getTranslatedKeyMessage().getString() + " " + Component.translatable("grappletooltip.throw.desc").getString()));
-				list.add(Component.literal(GrappleModKeyBindings.key_boththrow.getTranslatedKeyMessage().getString() + " " + Component.translatable("grappletooltip.release.desc").getString()));
-				list.add(Component.translatable("grappletooltip.double.desc").append(GrappleModKeyBindings.key_boththrow.getTranslatedKeyMessage()).append(" ").append(Component.translatable("grappletooltip.releaseandthrow.desc")));
+				list.add(Text.literal(GrappleModKeyBindings.key_boththrow.getBoundKeyLocalizedText().getString() + " " + Text.translatable("grappletooltip.throw.desc").getString()));
+				list.add(Text.literal(GrappleModKeyBindings.key_boththrow.getBoundKeyLocalizedText().getString() + " " + Text.translatable("grappletooltip.release.desc").getString()));
+				list.add(Text.translatable("grappletooltip.double.desc").append(GrappleModKeyBindings.key_boththrow.getBoundKeyLocalizedText()).append(" ").append(Text.translatable("grappletooltip.releaseandthrow.desc")));
 			} else {
-				list.add(Component.literal(GrappleModKeyBindings.key_boththrow.getTranslatedKeyMessage().getString() + " " + Component.translatable("grappletooltip.throwhold.desc").getString()));
+				list.add(Text.literal(GrappleModKeyBindings.key_boththrow.getBoundKeyLocalizedText().getString() + " " + Text.translatable("grappletooltip.throwhold.desc").getString()));
 			}
-			list.add(Component.literal(GrappleModClient.get().getKeyname(MCKeys.keyBindForward) + ", " +
+			list.add(Text.literal(GrappleModClient.get().getKeyname(MCKeys.keyBindForward) + ", " +
 					GrappleModClient.get().getKeyname(MCKeys.keyBindLeft) + ", " +
 					GrappleModClient.get().getKeyname(MCKeys.keyBindBack) + ", " +
 					GrappleModClient.get().getKeyname(MCKeys.keyBindRight) +
-					" " + Component.translatable("grappletooltip.swing.desc").getString()));
-			list.add(Component.literal(GrappleModKeyBindings.key_jumpanddetach.getTranslatedKeyMessage().getString() + " " + Component.translatable("grappletooltip.jump.desc").getString()));
-			list.add(Component.literal(GrappleModKeyBindings.key_slow.getTranslatedKeyMessage().getString() + " " + Component.translatable("grappletooltip.slow.desc").getString()));
-			list.add(Component.literal(GrappleModKeyBindings.key_climb.getTranslatedKeyMessage().getString() + " + " + GrappleModClient.get().getKeyname(MCKeys.keyBindForward) + " / " +
-					GrappleModKeyBindings.key_climbup.getTranslatedKeyMessage().getString() +
-					" " + Component.translatable("grappletooltip.climbup.desc").getString()));
-			list.add(Component.literal(GrappleModKeyBindings.key_climb.getTranslatedKeyMessage().getString() + " + " + GrappleModClient.get().getKeyname(MCKeys.keyBindBack) + " / " +
-					GrappleModKeyBindings.key_climbdown.getTranslatedKeyMessage().getString() +
-					" " + Component.translatable("grappletooltip.climbdown.desc").getString()));
+					" " + Text.translatable("grappletooltip.swing.desc").getString()));
+			list.add(Text.literal(GrappleModKeyBindings.key_jumpanddetach.getBoundKeyLocalizedText().getString() + " " + Text.translatable("grappletooltip.jump.desc").getString()));
+			list.add(Text.literal(GrappleModKeyBindings.key_slow.getBoundKeyLocalizedText().getString() + " " + Text.translatable("grappletooltip.slow.desc").getString()));
+			list.add(Text.literal(GrappleModKeyBindings.key_climb.getBoundKeyLocalizedText().getString() + " + " + GrappleModClient.get().getKeyname(MCKeys.keyBindForward) + " / " +
+					GrappleModKeyBindings.key_climbup.getBoundKeyLocalizedText().getString() +
+					" " + Text.translatable("grappletooltip.climbup.desc").getString()));
+			list.add(Text.literal(GrappleModKeyBindings.key_climb.getBoundKeyLocalizedText().getString() + " + " + GrappleModClient.get().getKeyname(MCKeys.keyBindBack) + " / " +
+					GrappleModKeyBindings.key_climbdown.getBoundKeyLocalizedText().getString() +
+					" " + Text.translatable("grappletooltip.climbdown.desc").getString()));
 			if (custom.enderstaff) {
-				list.add(Component.literal(GrappleModKeyBindings.key_enderlaunch.getTranslatedKeyMessage().getString() + " " + Component.translatable("grappletooltip.enderlaunch.desc").getString()));
+				list.add(Text.literal(GrappleModKeyBindings.key_enderlaunch.getBoundKeyLocalizedText().getString() + " " + Text.translatable("grappletooltip.enderlaunch.desc").getString()));
 			}
 			if (custom.rocket) {
-				list.add(Component.literal(GrappleModKeyBindings.key_rocket.getTranslatedKeyMessage().getString() + " " + Component.translatable("grappletooltip.rocket.desc").getString()));
+				list.add(Text.literal(GrappleModKeyBindings.key_rocket.getBoundKeyLocalizedText().getString() + " " + Text.translatable("grappletooltip.rocket.desc").getString()));
 			}
 			if (custom.motor) {
 				if (custom.motorwhencrouching && !custom.motorwhennotcrouching) {
-					list.add(Component.literal(GrappleModKeyBindings.key_motoronoff.getTranslatedKeyMessage().getString() + " " + Component.translatable("grappletooltip.motoron.desc").getString()));
+					list.add(Text.literal(GrappleModKeyBindings.key_motoronoff.getBoundKeyLocalizedText().getString() + " " + Text.translatable("grappletooltip.motoron.desc").getString()));
 				}
 				else if (!custom.motorwhencrouching && custom.motorwhennotcrouching) {
-					list.add(Component.literal(GrappleModKeyBindings.key_motoronoff.getTranslatedKeyMessage().getString() + " " + Component.translatable("grappletooltip.motoroff.desc").getString()));
+					list.add(Text.literal(GrappleModKeyBindings.key_motoronoff.getBoundKeyLocalizedText().getString() + " " + Text.translatable("grappletooltip.motoroff.desc").getString()));
 				}
 			}
 			if (custom.doublehook) {
 				if (!custom.detachonkeyrelease) {
-					list.add(Component.literal(GrappleModKeyBindings.key_leftthrow.getTranslatedKeyMessage().getString() + " " + Component.translatable("grappletooltip.throwleft.desc").getString()));
-					list.add(Component.literal(GrappleModKeyBindings.key_rightthrow.getTranslatedKeyMessage().getString() + " " + Component.translatable("grappletooltip.throwright.desc").getString()));
+					list.add(Text.literal(GrappleModKeyBindings.key_leftthrow.getBoundKeyLocalizedText().getString() + " " + Text.translatable("grappletooltip.throwleft.desc").getString()));
+					list.add(Text.literal(GrappleModKeyBindings.key_rightthrow.getBoundKeyLocalizedText().getString() + " " + Text.translatable("grappletooltip.throwright.desc").getString()));
 				} else {
-					list.add(Component.literal(GrappleModKeyBindings.key_leftthrow.getTranslatedKeyMessage().getString() + " " + Component.translatable("grappletooltip.throwlefthold.desc").getString()));
-					list.add(Component.literal(GrappleModKeyBindings.key_rightthrow.getTranslatedKeyMessage().getString() + " " + Component.translatable("grappletooltip.throwrighthold.desc").getString()));
+					list.add(Text.literal(GrappleModKeyBindings.key_leftthrow.getBoundKeyLocalizedText().getString() + " " + Text.translatable("grappletooltip.throwlefthold.desc").getString()));
+					list.add(Text.literal(GrappleModKeyBindings.key_rightthrow.getBoundKeyLocalizedText().getString() + " " + Text.translatable("grappletooltip.throwrighthold.desc").getString()));
 				}
 			} else {
-				list.add(Component.literal(GrappleModKeyBindings.key_rightthrow.getTranslatedKeyMessage().getString() + " " + Component.translatable("grappletooltip.throwalt.desc").getString()));
+				list.add(Text.literal(GrappleModKeyBindings.key_rightthrow.getBoundKeyLocalizedText().getString() + " " + Text.translatable("grappletooltip.throwalt.desc").getString()));
 			}
 			if (custom.reelin) {
-				list.add(Component.literal(GrappleModClient.get().getKeyname(MCKeys.keyBindSneak) + " " + Component.translatable("grappletooltip.reelin.desc").getString()));
+				list.add(Text.literal(GrappleModClient.get().getKeyname(MCKeys.keyBindSneak) + " " + Text.translatable("grappletooltip.reelin.desc").getString()));
 			}
 		} else {
 			if (Screen.hasControlDown()) {
 				for (String option : GrappleCustomization.booleanoptions) {
 					if (custom.isOptionValid(option) && custom.getBoolean(option) != GrappleCustomization.DEFAULT.getBoolean(option)) {
-						list.add(Component.literal((custom.getBoolean(option) ? "" : Component.translatable("grappletooltip.negate.desc").getString() + " ") + Component.translatable(custom.getName(option)).getString()));
+						list.add(Text.literal((custom.getBoolean(option) ? "" : Text.translatable("grappletooltip.negate.desc").getString() + " ") + Text.translatable(custom.getName(option)).getString()));
 					}
 				}
 				for (String option : GrappleCustomization.doubleoptions) {
 					if (custom.isOptionValid(option) && (custom.getDouble(option) != GrappleCustomization.DEFAULT.getDouble(option))) {
-						list.add(Component.translatable(custom.getName(option)).append(": " + Math.floor(custom.getDouble(option) * 100) / 100));
+						list.add(Text.translatable(custom.getName(option)).append(": " + Math.floor(custom.getDouble(option) * 100) / 100));
 					}
 				}
 			} else {
 				if (custom.doublehook) {
-					list.add(Component.translatable(custom.getName("doublehook")));
+					list.add(Text.translatable(custom.getName("doublehook")));
 				}
 				if (custom.motor) {
 					if (custom.smartmotor) {
-						list.add(Component.translatable(custom.getName("smartmotor")));
+						list.add(Text.translatable(custom.getName("smartmotor")));
 					} else {
-						list.add(Component.translatable(custom.getName("motor")));
+						list.add(Text.translatable(custom.getName("motor")));
 					}
 				}
 				if (custom.enderstaff) {
-					list.add(Component.translatable(custom.getName("enderstaff")));
+					list.add(Text.translatable(custom.getName("enderstaff")));
 				}
 				if (custom.rocket) {
-					list.add(Component.translatable(custom.getName("rocket")));
+					list.add(Text.translatable(custom.getName("rocket")));
 				}
 				if (custom.attract) {
-					list.add(Component.translatable(custom.getName("attract")));
+					list.add(Text.translatable(custom.getName("attract")));
 				}
 				if (custom.repel) {
-					list.add(Component.translatable(custom.getName("repel")));
+					list.add(Text.translatable(custom.getName("repel")));
 				}
 				
-				list.add(Component.literal(""));
-				list.add(Component.translatable("grappletooltip.shiftcontrols.desc"));
-				list.add(Component.translatable("grappletooltip.controlconfiguration.desc"));
+				list.add(Text.literal(""));
+				list.add(Text.translatable("grappletooltip.shiftcontrols.desc"));
+				list.add(Text.translatable("grappletooltip.controlconfiguration.desc"));
 			}
 		}
 	}
 
 	public void setCustomOnServer(ItemStack helditemstack, GrappleCustomization custom) {
-		CompoundTag tag = helditemstack.getOrCreateTag();
-		CompoundTag nbt = custom.writeNBT();
+		NbtCompound tag = helditemstack.getOrCreateNbt();
+		NbtCompound nbt = custom.writeNBT();
 		
 		tag.put("custom", nbt);
 		
-		helditemstack.setTag(tag);
+		helditemstack.setNbt(tag);
 	}
 
 	
 	@Override
-	public void onDroppedByPlayer(ItemStack item, Player player) {
+	public void onDroppedByPlayer(ItemStack item, PlayerEntity player) {
 		int id = player.getId();
-		GrappleModUtils.sendToCorrectClient(new GrappleDetachMessage(id), id, player.level);
+		GrappleModUtils.sendToCorrectClient(new GrappleDetachMessage(id), id, player.world);
 		
-		if (!player.level.isClientSide) {
+		if (!player.world.isClient) {
 			ServerControllerManager.attached.remove(id);
 		}
 		
@@ -530,32 +532,32 @@ public class GrapplehookItem extends Item implements KeypressItem, DroppableItem
 		}
 	}
 	
-	public boolean getPropertyRocket(ItemStack stack, Level world, LivingEntity entity) {
+	public boolean getPropertyRocket(ItemStack stack, World world, LivingEntity entity) {
 		return this.getCustomization(stack).rocket;
 	}
 
-	public boolean getPropertyDouble(ItemStack stack, Level world, LivingEntity entity) {
+	public boolean getPropertyDouble(ItemStack stack, World world, LivingEntity entity) {
 		return this.getCustomization(stack).doublehook;
 	}
 
-	public boolean getPropertyMotor(ItemStack stack, Level world, LivingEntity entity) {
+	public boolean getPropertyMotor(ItemStack stack, World world, LivingEntity entity) {
 		return this.getCustomization(stack).motor;
 	}
 
-	public boolean getPropertySmart(ItemStack stack, Level world, LivingEntity entity) {
+	public boolean getPropertySmart(ItemStack stack, World world, LivingEntity entity) {
 		return this.getCustomization(stack).smartmotor;
 	}
 
-	public boolean getPropertyEnderstaff(ItemStack stack, Level world, LivingEntity entity) {
+	public boolean getPropertyEnderstaff(ItemStack stack, World world, LivingEntity entity) {
 		return this.getCustomization(stack).enderstaff;
 	}
 
-	public boolean getPropertyMagnet(ItemStack stack, Level world, LivingEntity entity) {
+	public boolean getPropertyMagnet(ItemStack stack, World world, LivingEntity entity) {
 		return this.getCustomization(stack).attract || this.getCustomization(stack).repel;
 	}
 
-	public boolean getPropertyHook(ItemStack stack, Level world, LivingEntity entity) {
-    	CompoundTag tag = stack.getOrCreateTag();
+	public boolean getPropertyHook(ItemStack stack, World world, LivingEntity entity) {
+    	NbtCompound tag = stack.getOrCreateNbt();
     	return tag.contains("hook");
 	}
 }

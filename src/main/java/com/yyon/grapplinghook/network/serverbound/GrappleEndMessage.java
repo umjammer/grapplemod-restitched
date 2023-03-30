@@ -3,12 +3,10 @@ package com.yyon.grapplinghook.network.serverbound;
 import com.yyon.grapplinghook.GrappleMod;
 import com.yyon.grapplinghook.network.NetworkContext;
 import com.yyon.grapplinghook.server.ServerControllerManager;
-import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.level.Level;
-
 import java.util.HashSet;
+import net.minecraft.network.PacketByteBuf;
+import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.util.Identifier;
 
 /*
  * This file is part of GrappleMod.
@@ -32,7 +30,7 @@ public class GrappleEndMessage extends BaseMessageServer {
 	public int entityId;
 	public HashSet<Integer> hookEntityIds;
 
-    public GrappleEndMessage(FriendlyByteBuf buf) {
+    public GrappleEndMessage(PacketByteBuf buf) {
     	super(buf);
     }
 
@@ -42,7 +40,7 @@ public class GrappleEndMessage extends BaseMessageServer {
     }
 
 	@Override
-    public void decode(FriendlyByteBuf buf) {
+    public void decode(PacketByteBuf buf) {
     	this.entityId = buf.readInt();
     	int size = buf.readInt();
     	this.hookEntityIds = new HashSet<>();
@@ -52,7 +50,7 @@ public class GrappleEndMessage extends BaseMessageServer {
     }
 
 	@Override
-    public void encode(FriendlyByteBuf buf) {
+    public void encode(PacketByteBuf buf) {
     	buf.writeInt(this.entityId);
     	buf.writeInt(this.hookEntityIds.size());
     	for (int id : this.hookEntityIds) {
@@ -61,18 +59,18 @@ public class GrappleEndMessage extends BaseMessageServer {
     }
 
 	@Override
-	public ResourceLocation getChannel() {
+	public Identifier getChannel() {
 		return GrappleMod.id("grapple_end");
 	}
 
 	@Override
     public void processMessage(NetworkContext ctx) {
 		int id = this.entityId;
-		ServerPlayer player = ctx.getSender();
+		ServerPlayerEntity player = ctx.getSender();
 
 		ctx.getServer().execute(() -> {
 			if (player == null) return;
-			ServerControllerManager.receiveGrappleEnd(id, player.level, this.hookEntityIds);
+			ServerControllerManager.receiveGrappleEnd(id, player.world, this.hookEntityIds);
 		});
     }
 }

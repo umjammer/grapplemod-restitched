@@ -8,10 +8,14 @@ import com.yyon.grapplinghook.item.GrapplehookItem;
 import com.yyon.grapplinghook.item.LongFallBoots;
 import com.yyon.grapplinghook.item.upgrade.*;
 import net.fabricmc.fabric.api.itemgroup.v1.FabricItemGroup;
-import net.minecraft.core.Registry;
-import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.item.*;
+import net.minecraft.item.ArmorMaterials;
+import net.minecraft.item.BlockItem;
+import net.minecraft.item.Item;
+import net.minecraft.item.ItemGroup;
+import net.minecraft.item.ItemStack;
+import net.minecraft.registry.Registries;
+import net.minecraft.registry.Registry;
+import net.minecraft.util.Identifier;
 
 import java.util.*;
 import java.util.function.Supplier;
@@ -19,8 +23,8 @@ import java.util.stream.Collectors;
 
 public final class GrappleModItems {
 
-    private static ArrayList<ResourceLocation> itemsInRegistryOrder;
-    private static HashMap<ResourceLocation, ItemEntry<?>> items;
+    private static ArrayList<Identifier> itemsInRegistryOrder;
+    private static HashMap<Identifier, ItemEntry<?>> items;
 
     private static List<ItemStack> creativeMenuCache;
     private static boolean creativeCacheInvalid;
@@ -52,7 +56,7 @@ public final class GrappleModItems {
 
     public static final GrappleModBlocks.BlockItemEntry<BlockItem> GRAPPLE_MODIFIER_BLOCK = reserve();
 
-    private static final CreativeModeTab.DisplayItemsGenerator MOD_TAB_GENERATOR = (displayParameters, output) -> {
+    private static final ItemGroup.EntryCollector MOD_TAB_GENERATOR = (displayParameters, output) -> {
 
         if(creativeMenuCache == null || creativeCacheInvalid) {
             GrappleModItems.creativeCacheInvalid = false;
@@ -64,12 +68,12 @@ public final class GrappleModItems {
                     .collect(Collectors.toList());
         }
 
-        creativeMenuCache.forEach(output::accept);
+        creativeMenuCache.forEach(output::add);
     };
 
-    private static final CreativeModeTab ITEM_GROUP = FabricItemGroup.builder(GrappleMod.id("main"))
+    private static final ItemGroup ITEM_GROUP = FabricItemGroup.builder(GrappleMod.id("main"))
             .icon(() -> new ItemStack(GRAPPLING_HOOK.get()))
-            .displayItems(MOD_TAB_GENERATOR)
+            .entries(MOD_TAB_GENERATOR)
             .build();
 
     public static <I extends Item> ItemEntry<I> item(String id, Supplier<I> item) {
@@ -77,7 +81,7 @@ public final class GrappleModItems {
     }
 
     public static <I extends Item> ItemEntry<I> item(String id, Supplier<I> item, Supplier<List<ItemStack>> tabProvider) {
-        ResourceLocation qualId = GrappleMod.id(id);
+        Identifier qualId = GrappleMod.id(id);
         ItemEntry<I> entry = new ItemEntry<>(qualId, item, tabProvider);
 
         if(GrappleModItems.items.containsKey(qualId))
@@ -101,12 +105,12 @@ public final class GrappleModItems {
     }
 
     public static void registerAllItems() {
-        for(Map.Entry<ResourceLocation, ItemEntry<?>> def: items.entrySet()) {
-            ResourceLocation id = def.getKey();
+        for(Map.Entry<Identifier, ItemEntry<?>> def: items.entrySet()) {
+            Identifier id = def.getKey();
             ItemEntry<?> data = def.getValue();
             Item it = data.getFactory().get();
 
-            data.finalize(Registry.register(BuiltInRegistries.ITEM, id, it));
+            data.finalize(Registry.register(Registries.ITEM, id, it));
         }
     }
 
@@ -116,7 +120,7 @@ public final class GrappleModItems {
 
         protected Supplier<List<ItemStack>> tabProvider;
 
-        protected ItemEntry(ResourceLocation id, Supplier<I> factory, Supplier<List<ItemStack>> creativeTabProvider) {
+        protected ItemEntry(Identifier id, Supplier<I> factory, Supplier<List<ItemStack>> creativeTabProvider) {
             super(id, factory);
 
             this.tabProvider = creativeTabProvider == null
@@ -129,7 +133,7 @@ public final class GrappleModItems {
         }
 
         private Supplier<List<ItemStack>> defaultInTab() {
-            return () -> List.of(this.get().getDefaultInstance());
+            return () -> List.of(this.get().getDefaultStack());
         }
 
         private static Supplier<List<ItemStack>> hiddenInTab() {
@@ -139,7 +143,7 @@ public final class GrappleModItems {
         private static Supplier<List<ItemStack>> populateHookVariantsInTab() {
             return () -> {
                 ArrayList<ItemStack> grappleHookVariants = new ArrayList<>();
-                grappleHookVariants.add(GrappleModItems.GRAPPLING_HOOK.get().getDefaultInstance());
+                grappleHookVariants.add(GrappleModItems.GRAPPLING_HOOK.get().getDefaultStack());
 
                 GrappleHookTemplate.getTemplates().stream()
                         .filter(GrappleHookTemplate::isEnabled)

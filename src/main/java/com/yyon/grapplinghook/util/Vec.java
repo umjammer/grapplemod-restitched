@@ -1,8 +1,8 @@
 package com.yyon.grapplinghook.util;
 
 import com.yyon.grapplinghook.GrappleMod;
-import net.minecraft.world.entity.Entity;
-import net.minecraft.world.phys.Vec3;
+import net.minecraft.entity.Entity;
+import net.minecraft.util.math.Vec3d;
 import org.joml.Vector3f;
 
 public class Vec {
@@ -33,7 +33,7 @@ public class Vec {
 		}
 	}
 	
-	public Vec(Vec3 vec3d) {
+	public Vec(Vec3d vec3d) {
 		this.x = vec3d.x;
 		this.y = vec3d.y;
 		this.z = vec3d.z;
@@ -47,8 +47,8 @@ public class Vec {
 		this.z = vec.z;
 	}
 
-	public Vec3 toVec3d() {
-		return new Vec3(this.x, this.y, this.z);
+	public Vec3d toVec3d() {
+		return new Vec3d(this.x, this.y, this.z);
 	}
 	
 	public Vector3f toVector3f() {
@@ -56,11 +56,11 @@ public class Vec {
 	}
 	
 	public static Vec positionVec(Entity e) {
-		return new Vec(e.position());
+		return new Vec(e.getPos());
 	}
 	
 	public static Vec partialPositionVec(Entity e, double partialTicks) {
-		return new Vec(lerp(partialTicks, e.xo, e.getX()), lerp(partialTicks, e.yo, e.getY()), lerp(partialTicks, e.zo, e.getZ()));
+		return new Vec(lerp(partialTicks, e.prevX, e.getX()), lerp(partialTicks, e.prevY, e.getY()), lerp(partialTicks, e.prevZ, e.getZ()));
 	}
 	
 	public static double lerp(double frac, double from, double to) {
@@ -68,7 +68,7 @@ public class Vec {
 	}
 	
 	public static Vec motionVec(Entity e) {
-		return new Vec(e.getDeltaMovement());
+		return new Vec(e.getVelocity());
 	}
 	
 	public Vec add(Vec v2) {
@@ -208,16 +208,16 @@ public class Vec {
 	public void setPos(Entity e) {
 		this.checkNaN();
 
-		e.setPos(this.x, this.y, this.z);
+		e.setPosition(this.x, this.y, this.z);
 	}
 	
 	public void setMotion(Entity e) {
 		this.checkNaN();
 		
-		e.setDeltaMovement(this.toVec3d());
+		e.setVelocity(this.toVec3d());
 	}
 
 	public static Vec lookVec(Entity entity) {
-		return new Vec(entity.getLookAngle());
+		return new Vec(entity.getRotationVector());
 	}
 }

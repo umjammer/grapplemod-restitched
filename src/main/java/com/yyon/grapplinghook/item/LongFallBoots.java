@@ -3,11 +3,13 @@ package com.yyon.grapplinghook.item;
 import com.yyon.grapplinghook.config.GrappleConfig;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
-import net.minecraft.network.chat.Component;
-import net.minecraft.world.entity.EquipmentSlot;
-import net.minecraft.world.item.*;
-import net.minecraft.world.level.Level;
-
+import net.minecraft.client.item.TooltipContext;
+import net.minecraft.item.ArmorItem;
+import net.minecraft.item.ArmorMaterials;
+import net.minecraft.item.Item;
+import net.minecraft.item.ItemStack;
+import net.minecraft.text.Text;
+import net.minecraft.world.World;
 import java.util.List;
 
 /*
@@ -30,17 +32,17 @@ import java.util.List;
 public class LongFallBoots extends ArmorItem {
 
 	public LongFallBoots(ArmorMaterials material) {
-	    super(material, Type.BOOTS, new Item.Properties().stacksTo(1));
+	    super(material, Type.BOOTS, new Item.Settings().maxCount(1));
 	}
 	
 	@Override
 	@Environment(EnvType.CLIENT)
-	public void appendHoverText(ItemStack stack, Level world, List<Component> list, TooltipFlag par4) {
-		if (!stack.isEnchanted()) {
+	public void appendTooltip(ItemStack stack, World world, List<Text> list, TooltipContext par4) {
+		if (!stack.hasEnchantments()) {
 			if (GrappleConfig.getConf().longfallboots.longfallbootsrecipe) {
-				list.add(Component.translatable("grappletooltip.longfallbootsrecipe.desc"));
+				list.add(Text.translatable("grappletooltip.longfallbootsrecipe.desc"));
 			}
 		}
-		list.add(Component.translatable("grappletooltip.longfallboots.desc"));
+		list.add(Text.translatable("grappletooltip.longfallboots.desc"));
 	}
 }

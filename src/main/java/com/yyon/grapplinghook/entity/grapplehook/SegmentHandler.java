@@ -5,22 +5,21 @@ import com.yyon.grapplinghook.network.NetworkManager;
 import com.yyon.grapplinghook.network.clientbound.SegmentMessage;
 import com.yyon.grapplinghook.util.GrappleModUtils;
 import com.yyon.grapplinghook.util.Vec;
-import net.minecraft.core.BlockPos;
-import net.minecraft.core.Direction;
-import net.minecraft.core.Vec3i;
-import net.minecraft.server.level.ServerLevel;
-import net.minecraft.world.level.Level;
-import net.minecraft.world.phys.AABB;
-import net.minecraft.world.phys.BlockHitResult;
-
 import java.util.LinkedList;
+import net.minecraft.server.world.ServerWorld;
+import net.minecraft.util.hit.BlockHitResult;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.Box;
+import net.minecraft.util.math.Direction;
+import net.minecraft.util.math.Vec3i;
+import net.minecraft.world.World;
 
 public class SegmentHandler {
 
 	public LinkedList<Vec> segments;
 	public LinkedList<Direction> segmentBottomSides;
 	public LinkedList<Direction> segmentTopSides;
-	public Level world;
+	public World world;
 	public GrapplehookEntity hookEntity;
 	
 	Vec prevHookPos = null;
@@ -29,7 +28,7 @@ public class SegmentHandler {
 	final double bendOffset = 0.05;
 	final double intoBlock = 0.05;
 	
-	public SegmentHandler(Level w, GrapplehookEntity hookEntity, Vec hookpos, Vec playerpos) {
+	public SegmentHandler(World w, GrapplehookEntity hookEntity, Vec hookpos, Vec playerpos) {
 		segments = new LinkedList<>();
 		segments.add(hookpos);
 		segments.add(playerpos);
@@ -156,11 +155,11 @@ public class SegmentHandler {
 		segmentBottomSides.remove(index);
 		segmentTopSides.remove(index);
 
-		if (!this.world.isClientSide) {
+		if (!this.world.isClient) {
 			SegmentMessage addmessage = new SegmentMessage(this.hookEntity.getId(), false, index, new Vec(0, 0, 0), Direction.DOWN, Direction.DOWN);
 			Vec playerpoint = Vec.positionVec(this.hookEntity.shootingEntity);
 
-			NetworkManager.packetToClient(addmessage, GrappleModUtils.getChunkPlayers((ServerLevel) world, playerpoint));
+			NetworkManager.packetToClient(addmessage, GrappleModUtils.getChunkPlayers((ServerWorld) world, playerpoint));
 
 		}
 	}
@@ -174,9 +173,9 @@ public class SegmentHandler {
         		return;
         	}
         	
-            Vec bottomhitvec = new Vec(bottomraytraceresult.getLocation());
+            Vec bottomhitvec = new Vec(bottomraytraceresult.getPos());
 
-            Direction bottomside = bottomraytraceresult.getDirection();
+            Direction bottomside = bottomraytraceresult.getSide();
             Vec bottomnormal = this.getNormal(bottomside);
             
             // calculate where bottomhitvec was along the rope in the previous tick
@@ -196,8 +195,8 @@ public class SegmentHandler {
             	// the corner must be in the line (cornerbound2, cornerbound1)
             	BlockHitResult cornerraytraceresult = GrappleModUtils.rayTraceBlocks(this.hookEntity, this.world, cornerbound2, cornerbound1);
                 if (cornerraytraceresult != null) {
-                	Vec cornerhitpos = new Vec(cornerraytraceresult.getLocation());
-                	Direction cornerside = cornerraytraceresult.getDirection();
+                	Vec cornerhitpos = new Vec(cornerraytraceresult.getPos());
+                	Direction cornerside = cornerraytraceresult.getSide();
                 	
                 	if (!(cornerside == bottomside || cornerside.getOpposite() == bottomside)) {
                 		// add a bend around the corner
@@ -259,7 +258,7 @@ public class SegmentHandler {
 	}
 	
 	public Vec getNormal(Direction facing) {
-		Vec3i facingvec = facing.getNormal();
+		Vec3i facingvec = facing.getVector();
 		return new Vec(facingvec.getX(), facingvec.getY(), facingvec.getZ());
 	}
 	
@@ -271,7 +270,7 @@ public class SegmentHandler {
 		Vec bendpos = this.segments.get(index);
 		bendpos.add_ip(this.getNormal(this.segmentBottomSides.get(index)).changeLen(-this.intoBlock * 2));
 		bendpos.add_ip(this.getNormal(this.segmentTopSides.get(index)).changeLen(-this.intoBlock * 2));
-		return BlockPos.containing(bendpos.toVec3d());
+		return BlockPos.ofFloored(bendpos.toVec3d());
 	}
 	
 	public void actuallyAddSegment(int index, Vec bendpoint, Direction bottomside, Direction topside) {
@@ -279,11 +278,11 @@ public class SegmentHandler {
         segmentBottomSides.add(index, bottomside);
         segmentTopSides.add(index, topside);
         
-		if (!this.world.isClientSide) {
+		if (!this.world.isClient) {
 			SegmentMessage addmessage = new SegmentMessage(this.hookEntity.getId(), true, index, bendpoint, topside, bottomside);
 			Vec playerpoint = Vec.positionVec(this.hookEntity.shootingEntity);
 
-			NetworkManager.packetToClient(addmessage, GrappleModUtils.getChunkPlayers((ServerLevel) world, playerpoint));
+			NetworkManager.packetToClient(addmessage, GrappleModUtils.getChunkPlayers((ServerWorld) world, playerpoint));
 		}
 	}
 	
@@ -338,7 +337,7 @@ public class SegmentHandler {
 		return dist;
 	}
 	
-	public AABB getBoundingBox(Vec hookpos, Vec playerpos) {
+	public Box getBoundingBox(Vec hookpos, Vec playerpos) {
 		this.updatePos(hookpos, playerpos, this.ropeLen);
 		Vec minvec = new Vec(hookpos);
 		Vec maxvec = new Vec(hookpos);
@@ -361,6 +360,6 @@ public class SegmentHandler {
 			}
 		}
 
-		return new AABB(minvec.x, minvec.y, minvec.z, maxvec.x, maxvec.y, maxvec.z);
+		return new Box(minvec.x, minvec.y, minvec.z, maxvec.x, maxvec.y, maxvec.z);
 	}
 }

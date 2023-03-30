@@ -3,14 +3,13 @@ package com.yyon.grapplinghook.network.clientbound;
 import com.yyon.grapplinghook.GrappleMod;
 import com.yyon.grapplinghook.config.GrappleConfig;
 import com.yyon.grapplinghook.network.NetworkContext;
-import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.resources.ResourceLocation;
-
 import java.lang.reflect.Field;
 import java.lang.reflect.Type;
 import java.nio.charset.Charset;
 import java.util.Arrays;
 import java.util.Comparator;
+import net.minecraft.network.PacketByteBuf;
+import net.minecraft.util.Identifier;
 
 /*
  * This file is part of GrappleMod.
@@ -32,7 +31,7 @@ import java.util.Comparator;
 public class LoggedInMessage extends BaseMessageClient {
     GrappleConfig.Config conf;
 
-    public LoggedInMessage(FriendlyByteBuf buf) {
+    public LoggedInMessage(PacketByteBuf buf) {
     	super(buf);
     }
     
@@ -40,7 +39,7 @@ public class LoggedInMessage extends BaseMessageClient {
     	this.conf = serverconf;
     }
 
-    public <T> void decodeClass(FriendlyByteBuf buf, Class<T> theClass, T theObject) {
+    public <T> void decodeClass(PacketByteBuf buf, Class<T> theClass, T theObject) {
     	Field[] fields = theClass.getDeclaredFields();
     	Arrays.sort(fields, Comparator.comparing(Field::getName));
     	
@@ -75,14 +74,14 @@ public class LoggedInMessage extends BaseMessageClient {
     }
 
 	@Override
-    public void decode(FriendlyByteBuf buf) {
+    public void decode(PacketByteBuf buf) {
     	Class<GrappleConfig.Config> confclass = GrappleConfig.Config.class;
     	this.conf = new GrappleConfig.Config();
     	
     	decodeClass(buf, confclass, this.conf);
     }
 
-    public <T> void encodeClass(FriendlyByteBuf buf, Class<T> theClass, T theObject) {
+    public <T> void encodeClass(PacketByteBuf buf, Class<T> theClass, T theObject) {
     	Field[] fields = theClass.getDeclaredFields();
     	Arrays.sort(fields, Comparator.comparing(Field::getName));
     	
@@ -113,13 +112,13 @@ public class LoggedInMessage extends BaseMessageClient {
     }
 
 	@Override
-    public void encode(FriendlyByteBuf buf) {
+    public void encode(PacketByteBuf buf) {
     	Class<GrappleConfig.Config> confclass = GrappleConfig.Config.class;
     	encodeClass(buf, confclass, this.conf);
     }
 
 	@Override
-	public ResourceLocation getChannel() {
+	public Identifier getChannel() {
 		return GrappleMod.id("logged_in");
 	}
 

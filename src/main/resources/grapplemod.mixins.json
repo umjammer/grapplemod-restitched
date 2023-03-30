@@ -22,6 +22,8 @@
     "client.KeybindingHandlerMixin",
     "client.MovementInputHandlerMixin",
     "client.NonConflictingKeyBindingMixin",
+    "client.attachable.ArmorStandAttachablesMixin",
+    "client.attachable.HumanoidAttachablesMixin",
     "client.attachable.LayerDefinitionsMixin"
   ],
   "injectors": {

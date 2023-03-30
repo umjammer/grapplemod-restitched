@@ -1,22 +1,27 @@
 package com.yyon.grapplinghook.mixin.client.attachable;
 
+import java.util.List;
+
 import com.yyon.grapplinghook.registry.GrappleModEntityRenderLayers;
-import net.minecraft.client.renderer.entity.ArmorStandRenderer;
-import net.minecraft.client.renderer.entity.EntityRendererProvider;
-import net.minecraft.client.renderer.entity.layers.RenderLayer;
+import net.minecraft.client.render.entity.ArmorStandEntityRenderer;
+import net.minecraft.client.render.entity.EntityRendererFactory;
+import net.minecraft.client.render.entity.feature.FeatureRenderer;
+import net.minecraft.client.render.entity.model.ArmorStandArmorEntityModel;
+import net.minecraft.entity.decoration.ArmorStandEntity;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-@Mixin(ArmorStandRenderer.class)
+@Mixin(ArmorStandEntityRenderer.class)
 @SuppressWarnings({"rawtypes", "unchecked"})
 public abstract class ArmorStandAttachablesMixin {
 
-    @Inject(method = "<init>(Lnet/minecraft/client/renderer/entity/EntityRendererProvider$Context;)V", at = @At("TAIL"))
-    public void appendRenderLayers(EntityRendererProvider.Context context, CallbackInfo ci) {
-        RenderLayer longFallBootsLayer = GrappleModEntityRenderLayers.LONG_FALL_BOOTS.getLayer(((ArmorStandRenderer) (Object) this), context.getModelSet());
-        ((ArmorStandRenderer) (Object) this).addLayer(longFallBootsLayer);
+    @Inject(method = "<init>(Lnet/minecraft/client/render/entity/EntityRendererFactory$Context;)V", at = @At("TAIL"))
+    public void appendRenderLayers(EntityRendererFactory.Context context, CallbackInfo ci) {
+        FeatureRenderer longFallBootsLayer = GrappleModEntityRenderLayers.LONG_FALL_BOOTS.getLayer(((ArmorStandEntityRenderer) (Object) this), context.getModelLoader());
+        ((ArmorStandEntityRenderer) (Object) this).addFeature(longFallBootsLayer);
     }
 
 }

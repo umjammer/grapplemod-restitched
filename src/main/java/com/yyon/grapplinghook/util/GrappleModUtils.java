@@ -7,18 +7,17 @@ import net.fabricmc.fabric.api.networking.v1.PlayerLookup;
 import net.fabricmc.fabric.api.resource.ResourceManagerHelper;
 import net.fabricmc.fabric.api.resource.ResourcePackActivationType;
 import net.fabricmc.loader.api.ModContainer;
-import net.minecraft.core.BlockPos;
-import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.server.level.ServerLevel;
-import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.entity.Entity;
-import net.minecraft.world.level.ChunkPos;
-import net.minecraft.world.level.ClipContext;
-import net.minecraft.world.level.Level;
-import net.minecraft.world.phys.BlockHitResult;
-import net.minecraft.world.phys.HitResult;
-
+import net.minecraft.entity.Entity;
+import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.server.world.ServerWorld;
+import net.minecraft.text.Text;
+import net.minecraft.util.Identifier;
+import net.minecraft.util.hit.BlockHitResult;
+import net.minecraft.util.hit.HitResult;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.ChunkPos;
+import net.minecraft.world.RaycastContext;
+import net.minecraft.world.World;
 import java.util.Arrays;
 import java.util.List;
 import java.util.function.Supplier;
@@ -30,25 +29,25 @@ public class GrappleModUtils {
 	public static final int REPEL_ID = controllerid++;
 	public static final int AIR_FRICTION_ID = controllerid++;
 
-	public static void sendToCorrectClient(BaseMessageClient message, int playerid, Level w) {
-		Entity entity = w.getEntity(playerid);
-		if (entity instanceof ServerPlayer player) {
+	public static void sendToCorrectClient(BaseMessageClient message, int playerid, World w) {
+		Entity entity = w.getEntityById(playerid);
+		if (entity instanceof ServerPlayerEntity player) {
 			NetworkManager.packetToClient(message, player);
 		} else {
 			GrappleMod.LOGGER.warn("ERROR! couldn't find player");
 		}
 	}
 
-	public static BlockHitResult rayTraceBlocks(Entity entity, Level world, Vec from, Vec to) {
-		BlockHitResult result = world.clip(new ClipContext(from.toVec3d(), to.toVec3d(), ClipContext.Block.COLLIDER, ClipContext.Fluid.NONE, entity));
+	public static BlockHitResult rayTraceBlocks(Entity entity, World world, Vec from, Vec to) {
+		BlockHitResult result = world.raycast(new RaycastContext(from.toVec3d(), to.toVec3d(), RaycastContext.ShapeType.COLLIDER, RaycastContext.FluidHandling.NONE, entity));
 
 		return result.getType() == HitResult.Type.BLOCK
 				? result
 				: null;
 	}
 
-	public static long getTime(Level w) {
-		return w.getGameTime();
+	public static long getTime(World w) {
+		return w.getTime();
 	}
 
 	@SafeVarargs
@@ -62,13 +61,13 @@ public class GrappleModUtils {
 		return !failed;
 	}
 
-	public static synchronized ServerPlayer[] getChunkPlayers(ServerLevel level, Vec point) {
-		ChunkPos chunk = level.getChunkAt(BlockPos.containing(point.toVec3d())).getPos();
-		return PlayerLookup.tracking(level, chunk).toArray(new ServerPlayer[0]);
+	public static synchronized ServerPlayerEntity[] getChunkPlayers(ServerWorld level, Vec point) {
+		ChunkPos chunk = level.getWorldChunk(BlockPos.ofFloored(point.toVec3d())).getPos();
+		return PlayerLookup.tracking(level, chunk).toArray(new ServerPlayerEntity[0]);
 	}
 
-	public static void registerPack(String id, Component displayName, ModContainer container, ResourcePackActivationType activationType) {
-		ResourceManagerHelper.registerBuiltinResourcePack(new ResourceLocation(GrappleMod.MODID, id), container, displayName, activationType);
+	public static void registerPack(String id, Text displayName, ModContainer container, ResourcePackActivationType activationType) {
+		ResourceManagerHelper.registerBuiltinResourcePack(new Identifier(GrappleMod.MODID, id), container, displayName, activationType);
 	}
 
 }

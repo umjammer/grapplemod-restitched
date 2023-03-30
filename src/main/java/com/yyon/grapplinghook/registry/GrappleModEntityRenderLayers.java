@@ -5,28 +5,27 @@ import com.yyon.grapplinghook.GrappleMod;
 import com.yyon.grapplinghook.client.attachable.LongFallBootsLayer;
 import com.yyon.grapplinghook.client.attachable.model.LongFallBootsModel;
 import com.yyon.grapplinghook.util.BiParamFunction;
-import net.minecraft.client.model.EntityModel;
-import net.minecraft.client.model.geom.EntityModelSet;
-import net.minecraft.client.model.geom.ModelLayerLocation;
-import net.minecraft.client.model.geom.ModelLayers;
-import net.minecraft.client.model.geom.builders.LayerDefinition;
-import net.minecraft.client.renderer.entity.RenderLayerParent;
-import net.minecraft.client.renderer.entity.layers.RenderLayer;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.entity.LivingEntity;
-
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.function.Supplier;
+import net.minecraft.client.model.TexturedModelData;
+import net.minecraft.client.render.entity.feature.FeatureRenderer;
+import net.minecraft.client.render.entity.feature.FeatureRendererContext;
+import net.minecraft.client.render.entity.model.EntityModel;
+import net.minecraft.client.render.entity.model.EntityModelLayer;
+import net.minecraft.client.render.entity.model.EntityModelLayers;
+import net.minecraft.client.render.entity.model.EntityModelLoader;
+import net.minecraft.entity.LivingEntity;
+import net.minecraft.util.Identifier;
 
 // This doesn't use a Built-In registry but follows a style similar to one as
 // model locations need registering.
 @SuppressWarnings("rawtypes")
 public class GrappleModEntityRenderLayers {
 
-    private static HashMap<ResourceLocation, RenderLayerEntry> renderLayers;
+    private static HashMap<Identifier, RenderLayerEntry> renderLayers;
 
     static {
         GrappleModEntityRenderLayers.renderLayers = new HashMap<>();
@@ -34,8 +33,8 @@ public class GrappleModEntityRenderLayers {
 
     public static void registerAll() { }
 
-    public static RenderLayerEntry layer(String path, String modelLayerName, BiParamFunction<RenderLayerParent, EntityModelSet, RenderLayer> layerFactory, Supplier<LayerDefinition> def) {
-        ResourceLocation qualId = GrappleMod.fakeId(path);
+    public static RenderLayerEntry layer(String path, String modelLayerName, BiParamFunction<FeatureRendererContext, EntityModelLoader, FeatureRenderer> layerFactory, Supplier<TexturedModelData> def) {
+        Identifier qualId = GrappleMod.fakeId(path);
         RenderLayerEntry entry = new RenderLayerEntry(qualId, modelLayerName, def, layerFactory);
 
         entry.registerModelLocation();
@@ -44,12 +43,12 @@ public class GrappleModEntityRenderLayers {
         return entry;
     }
 
-    public static RenderLayerEntry layer(String id, BiParamFunction<RenderLayerParent, EntityModelSet, RenderLayer> layerFactory, Supplier<LayerDefinition> def) {
+    public static RenderLayerEntry layer(String id, BiParamFunction<FeatureRendererContext, EntityModelLoader, FeatureRenderer> layerFactory, Supplier<TexturedModelData> def) {
         return layer(id, "main", layerFactory, def);
     }
 
 
-    private static BiParamFunction<RenderLayerParent<?, ?>, EntityModelSet, RenderLayer<?, ?>> noModelIncluded(Function<RenderLayerParent<?, ?>, RenderLayer<?, ?>> layerFactory) {
+    private static BiParamFunction<FeatureRendererContext<?, ?>, EntityModelLoader, FeatureRenderer<?, ?>> noModelIncluded(Function<FeatureRendererContext<?, ?>, FeatureRenderer<?, ?>> layerFactory) {
         return (parent, model) -> layerFactory.apply(parent);
     }
 
@@ -58,39 +57,39 @@ public class GrappleModEntityRenderLayers {
     public static final RenderLayerEntry LONG_FALL_BOOTS = GrappleModEntityRenderLayers.layer("long_fall_boots", LongFallBootsLayer::new, LongFallBootsModel::generateLayer);
 
 
-    public static Map<ResourceLocation, RenderLayerEntry> getRenderLayers() {
+    public static Map<Identifier, RenderLayerEntry> getRenderLayers() {
         return Collections.unmodifiableMap(renderLayers);
     }
 
-    public static class RenderLayerEntry extends AbstractRegistryReference<LayerDefinition> {
+    public static class RenderLayerEntry extends AbstractRegistryReference<TexturedModelData> {
 
-        private final ModelLayerLocation location;
+        private final EntityModelLayer location;
 
-        private final BiParamFunction<RenderLayerParent, EntityModelSet, RenderLayer> layerFactory;
+        private final BiParamFunction<FeatureRendererContext, EntityModelLoader, FeatureRenderer> layerFactory;
 
 
-        protected RenderLayerEntry(ResourceLocation path, String modelLayerName, Supplier<LayerDefinition> def, BiParamFunction<RenderLayerParent, EntityModelSet, RenderLayer> layerFactory) {
+        protected RenderLayerEntry(Identifier path, String modelLayerName, Supplier<TexturedModelData> def, BiParamFunction<FeatureRendererContext, EntityModelLoader, FeatureRenderer> layerFactory) {
             super(path, def);
-            this.location = new ModelLayerLocation(path, modelLayerName);
+            this.location = new EntityModelLayer(path, modelLayerName);
             this.layerFactory = layerFactory;
         }
 
-        public ModelLayerLocation getLocation() {
+        public EntityModelLayer getLocation() {
             return this.location;
         }
 
         //@SuppressWarnings("unchecked")
-        public RenderLayer getLayer(RenderLayerParent<? extends LivingEntity, ? extends EntityModel<? extends LivingEntity>> parent, EntityModelSet modelSet) {
+        public FeatureRenderer getLayer(FeatureRendererContext<? extends LivingEntity, ? extends EntityModel<? extends LivingEntity>> parent, EntityModelLoader modelSet) {
             return this.getLayerFactory().apply(parent, modelSet);
         }
 
-        public BiParamFunction<RenderLayerParent, EntityModelSet, RenderLayer> getLayerFactory() {
+        public BiParamFunction<FeatureRendererContext, EntityModelLoader, FeatureRenderer> getLayerFactory() {
             return layerFactory;
         }
 
         private void registerModelLocation() {
-            ModelLayerLocation loc = this.getLocation();
-            ModelLayers.register(loc.getModel().getPath(), loc.getLayer());
+            EntityModelLayer loc = this.getLocation();
+            EntityModelLayers.register(loc.getId().getPath(), loc.getName());
         }
     }
 

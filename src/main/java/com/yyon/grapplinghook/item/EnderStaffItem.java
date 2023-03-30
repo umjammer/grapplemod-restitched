@@ -4,14 +4,14 @@ import com.yyon.grapplinghook.client.GrappleModClient;
 import com.yyon.grapplinghook.client.keybind.MCKeys;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
-import net.minecraft.network.chat.Component;
-import net.minecraft.world.InteractionHand;
-import net.minecraft.world.InteractionResultHolder;
-import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.Item;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.TooltipFlag;
-import net.minecraft.world.level.Level;
+import net.minecraft.client.item.TooltipContext;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.item.Item;
+import net.minecraft.item.ItemStack;
+import net.minecraft.text.Text;
+import net.minecraft.util.Hand;
+import net.minecraft.util.TypedActionResult;
+import net.minecraft.world.World;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
@@ -36,29 +36,29 @@ import java.util.List;
 public class EnderStaffItem extends Item {
 	
 	public EnderStaffItem() {
-		super(new Item.Properties().stacksTo(1));
+		super(new Item.Settings().maxCount(1));
 	}
 	
-	public void doRightClick(Level worldIn, Player player) {
-		if (!worldIn.isClientSide) return;
+	public void doRightClick(World worldIn, PlayerEntity player) {
+		if (!worldIn.isClient) return;
 		GrappleModClient.get().launchPlayer(player);
 	}
 	
     @Override
 	@NotNull
-    public InteractionResultHolder<ItemStack> use(Level worldIn, Player playerIn, InteractionHand hand) {
-    	ItemStack stack = playerIn.getItemInHand(hand);
+    public TypedActionResult<ItemStack> use(World worldIn, PlayerEntity playerIn, Hand hand) {
+    	ItemStack stack = playerIn.getStackInHand(hand);
         this.doRightClick(worldIn, playerIn);
 
-    	return InteractionResultHolder.success(stack);
+    	return TypedActionResult.success(stack);
 	}
     
 	@Override
 	@Environment(EnvType.CLIENT)
-	public void appendHoverText(ItemStack stack, Level world, List<Component> list, TooltipFlag par4) {
-		list.add(Component.translatable("grappletooltip.launcheritem.desc"));
-		list.add(Component.literal(""));
-		list.add(Component.translatable("grappletooltip.launcheritemaim.desc"));
-		list.add(Component.literal(GrappleModClient.get().getKeyname(MCKeys.keyBindUseItem) + Component.translatable("grappletooltip.launcheritemcontrols.desc").getString()));
+	public void appendTooltip(ItemStack stack, World world, List<Text> list, TooltipContext par4) {
+		list.add(Text.translatable("grappletooltip.launcheritem.desc"));
+		list.add(Text.literal(""));
+		list.add(Text.translatable("grappletooltip.launcheritemaim.desc"));
+		list.add(Text.literal(GrappleModClient.get().getKeyname(MCKeys.keyBindUseItem) + Text.translatable("grappletooltip.launcheritemcontrols.desc").getString()));
 	}
 }

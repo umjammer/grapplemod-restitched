@@ -4,12 +4,11 @@ import com.yyon.grapplinghook.GrappleMod;
 import com.yyon.grapplinghook.item.KeypressItem;
 import com.yyon.grapplinghook.network.NetworkContext;
 import com.yyon.grapplinghook.network.serverbound.BaseMessageServer;
-import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.InteractionHand;
-import net.minecraft.world.item.Item;
-import net.minecraft.world.item.ItemStack;
+import net.minecraft.item.ItemStack;
+import net.minecraft.network.PacketByteBuf;
+import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.util.Hand;
+import net.minecraft.util.Identifier;
 
 /*
  * This file is part of GrappleMod.
@@ -33,7 +32,7 @@ public class KeypressMessage extends BaseMessageServer {
 	KeypressItem.Keys key;
 	boolean isDown;
 
-    public KeypressMessage(FriendlyByteBuf buf) {
+    public KeypressMessage(PacketByteBuf buf) {
     	super(buf);
     }
 
@@ -43,29 +42,29 @@ public class KeypressMessage extends BaseMessageServer {
     }
 
 	@Override
-    public void decode(FriendlyByteBuf buf) {
+    public void decode(PacketByteBuf buf) {
     	this.key = KeypressItem.Keys.values()[buf.readInt()];
     	this.isDown = buf.readBoolean();
     }
 
 	@Override
-    public void encode(FriendlyByteBuf buf) {
+    public void encode(PacketByteBuf buf) {
     	buf.writeInt(this.key.ordinal());
     	buf.writeBoolean(this.isDown);
     }
 
 	@Override
-	public ResourceLocation getChannel() {
+	public Identifier getChannel() {
 		return GrappleMod.id("keypress");
 	}
 
 	@Override
     public void processMessage(NetworkContext ctx) {
-    	final ServerPlayer player = ctx.getSender();
+    	final ServerPlayerEntity player = ctx.getSender();
 
 		ctx.getServer().execute(() -> {
 			if (player != null) {
-				ItemStack stack = player.getItemInHand(InteractionHand.MAIN_HAND);
+				ItemStack stack = player.getStackInHand(Hand.MAIN_HAND);
 				if (stack.getItem() instanceof KeypressItem keypressItem) {
 					if (isDown) {
 						keypressItem.onCustomKeyDown(stack, player, key, true);
@@ -76,7 +75,7 @@ public class KeypressMessage extends BaseMessageServer {
 					return;
 				}
 
-				stack = player.getItemInHand(InteractionHand.OFF_HAND);
+				stack = player.getStackInHand(Hand.OFF_HAND);
 				if (stack.getItem() instanceof KeypressItem keypressItem) {
 					if (isDown) {
 						keypressItem.onCustomKeyDown(stack, player, key, false);

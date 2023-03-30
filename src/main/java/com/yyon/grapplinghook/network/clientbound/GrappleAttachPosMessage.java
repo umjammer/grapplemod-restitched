@@ -6,11 +6,10 @@ import com.yyon.grapplinghook.network.NetworkContext;
 import com.yyon.grapplinghook.network.clientbound.BaseMessageClient;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
-import net.minecraft.client.Minecraft;
-import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.entity.Entity;
-import net.minecraft.world.level.Level;
+import net.minecraft.client.MinecraftClient;
+import net.minecraft.network.PacketByteBuf;
+import net.minecraft.util.Identifier;
+import net.minecraft.world.World;
 
 
 /*
@@ -37,7 +36,7 @@ public class GrappleAttachPosMessage extends BaseMessageClient {
 	public double y;
 	public double z;
 
-    public GrappleAttachPosMessage(FriendlyByteBuf buf) {
+    public GrappleAttachPosMessage(PacketByteBuf buf) {
     	super(buf);
     }
 
@@ -49,7 +48,7 @@ public class GrappleAttachPosMessage extends BaseMessageClient {
     }
 
     @Override
-    public void decode(FriendlyByteBuf buf) {
+    public void decode(PacketByteBuf buf) {
     	this.id = buf.readInt();
         this.x = buf.readDouble();
         this.y = buf.readDouble();
@@ -57,7 +56,7 @@ public class GrappleAttachPosMessage extends BaseMessageClient {
     }
 
     @Override
-    public void encode(FriendlyByteBuf buf) {
+    public void encode(PacketByteBuf buf) {
     	buf.writeInt(this.id);
         buf.writeDouble(this.x);
         buf.writeDouble(this.y);
@@ -65,21 +64,21 @@ public class GrappleAttachPosMessage extends BaseMessageClient {
     }
 
     @Override
-    public ResourceLocation getChannel() {
+    public Identifier getChannel() {
         return GrappleMod.id("grapple_attach_pos");
     }
 
     @Environment(EnvType.CLIENT)
     @Override
     public void processMessage(NetworkContext ctx) {
-    	Level world = Minecraft.getInstance().level;
+    	World world = MinecraftClient.getInstance().world;
 
         if(world == null) {
             GrappleMod.LOGGER.warn("Network Message received in invalid context (World not present | GrappleAttachPos)");
             return;
         }
 
-    	if (world.getEntity(this.id) instanceof GrapplehookEntity grapple) {
+    	if (world.getEntityById(this.id) instanceof GrapplehookEntity grapple) {
         	grapple.setAttachPos(this.x, this.y, this.z);
         }
     }

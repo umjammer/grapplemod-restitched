@@ -4,9 +4,9 @@ import com.yyon.grapplinghook.client.GrappleModClient;
 import com.yyon.grapplinghook.config.GrappleConfig;
 import com.yyon.grapplinghook.util.GrappleCustomization;
 import com.yyon.grapplinghook.util.Vec;
-import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.level.Level;
+import net.minecraft.entity.Entity;
+import net.minecraft.entity.LivingEntity;
+import net.minecraft.world.World;
 
 /*
  * This file is part of GrappleMod.
@@ -33,7 +33,7 @@ public class AirfrictionController extends GrappleController {
 	public boolean wasRocket = false;
 	public boolean firstTickSinceCreated = true;
 	
-	public AirfrictionController(int grapplehookEntityId, int entityId, Level world, int id, GrappleCustomization custom) {
+	public AirfrictionController(int grapplehookEntityId, int entityId, World world, int id, GrappleCustomization custom) {
 		super(grapplehookEntityId, entityId, world, id, custom);
 	}
 	
@@ -71,7 +71,7 @@ public class AirfrictionController extends GrappleController {
 
 			this.applyAirFriction();
 
-			if (this.entity.isInWater() || this.entity.isInLava()) {
+			if (this.entity.isTouchingWater() || this.entity.isInLava()) {
 				this.unattach();
 				return;
 			}

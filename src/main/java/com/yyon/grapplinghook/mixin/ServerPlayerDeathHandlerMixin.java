@@ -1,18 +1,18 @@
 package com.yyon.grapplinghook.mixin;
 
 import com.yyon.grapplinghook.util.SharedDamageHandler;
-import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.damagesource.DamageSource;
-import net.minecraft.world.entity.Entity;
+import net.minecraft.entity.Entity;
+import net.minecraft.entity.damage.DamageSource;
+import net.minecraft.server.network.ServerPlayerEntity;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-@Mixin(ServerPlayer.class)
+@Mixin(ServerPlayerEntity.class)
 public class ServerPlayerDeathHandlerMixin {
 
-    @Inject(method = "die(Lnet/minecraft/world/damagesource/DamageSource;)V", at = @At("HEAD"), cancellable = true)
+    @Inject(method = "onDeath(Lnet/minecraft/entity/damage/DamageSource;)V", at = @At("HEAD"), cancellable = true)
     public void handleDeath(DamageSource source, CallbackInfo ci){
         if(SharedDamageHandler.handleDeath((Entity) (Object) this)) ci.cancel();
     }

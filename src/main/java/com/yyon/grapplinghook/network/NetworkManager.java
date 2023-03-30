@@ -6,14 +6,13 @@ import com.yyon.grapplinghook.network.serverbound.*;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
-import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.server.level.ServerPlayer;
-
+import net.minecraft.network.PacketByteBuf;
+import net.minecraft.server.network.ServerPlayerEntity;
 import java.util.function.Function;
 
 public class NetworkManager {
 
-    protected static ClientPlayNetworking.PlayChannelHandler generateClientPacketHandler(Function<FriendlyByteBuf, BaseMessageClient> packetFactory) {
+    protected static ClientPlayNetworking.PlayChannelHandler generateClientPacketHandler(Function<PacketByteBuf, BaseMessageClient> packetFactory) {
         return (client, handler, buf, responseSender) -> {
             BaseMessageClient packet = packetFactory.apply(buf);
             NetworkContext context = new NetworkContext()
@@ -26,7 +25,7 @@ public class NetworkManager {
         };
     }
 
-    protected static ServerPlayNetworking.PlayChannelHandler generateServerPacketHandler(Function<FriendlyByteBuf, BaseMessageServer> packetFactory) {
+    protected static ServerPlayNetworking.PlayChannelHandler generateServerPacketHandler(Function<PacketByteBuf, BaseMessageServer> packetFactory) {
         return (server, player, handler, buf, responseSender) -> {
             BaseMessageServer packet = packetFactory.apply(buf);
             NetworkContext context = new NetworkContext()
@@ -41,30 +40,30 @@ public class NetworkManager {
     }
 
 
-    public static void registerClient(String channelId, Function<FriendlyByteBuf, BaseMessageClient> etc) {
+    public static void registerClient(String channelId, Function<PacketByteBuf, BaseMessageClient> etc) {
         ClientPlayNetworking.registerGlobalReceiver(GrappleMod.id(channelId), NetworkManager.generateClientPacketHandler(etc));
     }
 
-    public static void registerServer(String channelId, Function<FriendlyByteBuf, BaseMessageServer> etc) {
+    public static void registerServer(String channelId, Function<PacketByteBuf, BaseMessageServer> etc) {
         ServerPlayNetworking.registerGlobalReceiver(GrappleMod.id(channelId), NetworkManager.generateServerPacketHandler(etc));
     }
 
     public static void packetToServer(BaseMessageServer server) {
-        FriendlyByteBuf buf = PacketByteBufs.create();
+        PacketByteBuf buf = PacketByteBufs.create();
         server.encode(buf);
         ClientPlayNetworking.send(server.getChannel(), buf);
     }
 
-    public static void packetToClient(BaseMessageClient client, ServerPlayer... players) {
+    public static void packetToClient(BaseMessageClient client, ServerPlayerEntity... players) {
         if(players.length == 0) {
             GrappleMod.LOGGER.warn("Missing any players to send a packet to!");
             return;
         }
 
-        FriendlyByteBuf buf = PacketByteBufs.create();
+        PacketByteBuf buf = PacketByteBufs.create();
         client.encode(buf);
 
-        for(ServerPlayer player: players)
+        for(ServerPlayerEntity player: players)
             ServerPlayNetworking.send(player, client.getChannel(), buf);
     }
 

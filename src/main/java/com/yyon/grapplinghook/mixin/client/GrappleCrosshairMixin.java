@@ -1,19 +1,24 @@
 package com.yyon.grapplinghook.mixin.client;
 
 import com.mojang.blaze3d.platform.GlStateManager;
-import com.mojang.blaze3d.platform.Window;
 import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.blaze3d.vertex.*;
 import com.yyon.grapplinghook.client.ClientControllerManager;
 import com.yyon.grapplinghook.item.GrapplehookItem;
 import com.yyon.grapplinghook.registry.GrappleModItems;
 import com.yyon.grapplinghook.util.GrappleCustomization;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.Gui;
-import net.minecraft.client.player.LocalPlayer;
-import net.minecraft.client.renderer.GameRenderer;
-import net.minecraft.world.InteractionHand;
-import net.minecraft.world.item.ItemStack;
+import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.gui.hud.InGameHud;
+import net.minecraft.client.network.ClientPlayerEntity;
+import net.minecraft.client.render.BufferBuilder;
+import net.minecraft.client.render.BufferRenderer;
+import net.minecraft.client.render.GameRenderer;
+import net.minecraft.client.render.Tessellator;
+import net.minecraft.client.render.VertexFormat;
+import net.minecraft.client.render.VertexFormats;
+import net.minecraft.client.util.Window;
+import net.minecraft.client.util.math.MatrixStack;
+import net.minecraft.item.ItemStack;
+import net.minecraft.util.Hand;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -21,26 +26,26 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-@Mixin(Gui.class)
+@Mixin(InGameHud.class)
 public class GrappleCrosshairMixin {
 
     private static final double Z_LEVEL = -90.0D;
 
     @Final @Shadow
-    private Minecraft minecraft;
+    private MinecraftClient client;
 
-    @Inject(method = "renderCrosshair(Lcom/mojang/blaze3d/vertex/PoseStack;)V", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/Gui;blit(Lcom/mojang/blaze3d/vertex/PoseStack;IIIIII)V", shift = At.Shift.AFTER, ordinal = 0))
-    public void renderModCrosshair(PoseStack matrices, CallbackInfo ci) {
+    @Inject(method = "renderCrosshair(Lnet/minecraft/client/util/math/MatrixStack;)V", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/hud/InGameHud;drawTexture(Lnet/minecraft/client/util/math/MatrixStack;IIIIII)V", shift = At.Shift.AFTER, ordinal = 0))
+    public void renderModCrosshair(MatrixStack matrices, CallbackInfo ci) {
 
-        LocalPlayer player = this.minecraft.player;
+        ClientPlayerEntity player = this.client.player;
         ItemStack grapplehookItemStack = null;
 
         if (player == null) throw new IllegalStateException("Player should not be null when rendering crosshair");
 
-        if (player.getItemInHand(InteractionHand.MAIN_HAND).getItem() instanceof GrapplehookItem) {
-            grapplehookItemStack = player.getItemInHand(InteractionHand.MAIN_HAND);
-        } else if (player.getItemInHand(InteractionHand.OFF_HAND).getItem() instanceof GrapplehookItem) {
-            grapplehookItemStack = player.getItemInHand(InteractionHand.OFF_HAND);
+        if (player.getStackInHand(Hand.MAIN_HAND).getItem() instanceof GrapplehookItem) {
+            grapplehookItemStack = player.getStackInHand(Hand.MAIN_HAND);
+        } else if (player.getStackInHand(Hand.OFF_HAND).getItem() instanceof GrapplehookItem) {
+            grapplehookItemStack = player.getStackInHand(Hand.OFF_HAND);
         }
 
         if (grapplehookItemStack != null) {
@@ -48,19 +53,19 @@ public class GrappleCrosshairMixin {
             double angle = Math.toRadians(custom.angle);
             double verticalAngle = Math.toRadians(custom.verticalthrowangle);
 
-            if (player.isCrouching()) {
+            if (player.isInSneakingPose()) {
                 angle = Math.toRadians(custom.sneakingangle);
                 verticalAngle = Math.toRadians(custom.sneakingverticalthrowangle);
             }
 
             if (!custom.doublehook) angle = 0;
 
-            Window resolution = this.minecraft.getWindow();
-            int w = resolution.getGuiScaledWidth();
-            int h = resolution.getGuiScaledHeight();
+            Window resolution = this.client.getWindow();
+            int w = resolution.getScaledWidth();
+            int h = resolution.getScaledHeight();
 
-            double fov = Math.toRadians(this.minecraft.options.fov().get());
-            fov *= player.getFieldOfViewModifier();
+            double fov = Math.toRadians(this.client.options.getFov().getValue());
+            fov *= player.getFovMultiplier();
             double l = ((double) h/2) / Math.tan(fov/2);
 
             if (!((verticalAngle == 0) && (!custom.doublehook || angle == 0))) {
@@ -82,39 +87,39 @@ public class GrappleCrosshairMixin {
         double rocketFuel = ClientControllerManager.instance.rocketFuel;
 
         if (rocketFuel < 1) {
-            Window resolution = this.minecraft.getWindow();
-            int w = resolution.getGuiScaledWidth();
-            int h = resolution.getGuiScaledHeight();
+            Window resolution = this.client.getWindow();
+            int w = resolution.getScaledWidth();
+            int h = resolution.getScaledHeight();
 
             int totalbarLength = w / 8;
 
-            RenderSystem.getModelViewStack().pushPose();
+            RenderSystem.getModelViewStack().push();
 
             this.drawRect(w / 2 - totalbarLength / 2, h * 3 / 4, totalbarLength, 2, 50, 100);
             this.drawRect(w / 2 - totalbarLength / 2, h * 3 / 4, (int) (totalbarLength * rocketFuel), 2, 200, 255);
 
-            RenderSystem.getModelViewStack().popPose();
+            RenderSystem.getModelViewStack().pop();
         }
     }
 
 
-    private void drawCrosshair(PoseStack mStack, int x, int y) {
-        RenderSystem.blendFuncSeparate(GlStateManager.SourceFactor.ONE_MINUS_DST_COLOR, GlStateManager.DestFactor.ONE_MINUS_SRC_COLOR, GlStateManager.SourceFactor.ONE, GlStateManager.DestFactor.ZERO);
-        Minecraft.getInstance().gui.blit(mStack, (int) (x - (15.0F/2)), (int) (y - (15.0F/2)), 0, 0, 15, 15);
+    private void drawCrosshair(MatrixStack mStack, int x, int y) {
+        RenderSystem.blendFuncSeparate(GlStateManager.SrcFactor.ONE_MINUS_DST_COLOR, GlStateManager.DstFactor.ONE_MINUS_SRC_COLOR, GlStateManager.SrcFactor.ONE, GlStateManager.DstFactor.ZERO);
+        MinecraftClient.getInstance().inGameHud.drawTexture(mStack, (int) (x - (15.0F/2)), (int) (y - (15.0F/2)), 0, 0, 15, 15);
         RenderSystem.defaultBlendFunc();
     }
 
     public void drawRect(int x, int y, int width, int height, int g, int a)
     {
-        RenderSystem.setShader(GameRenderer::getPositionColorShader);
-        BufferBuilder bufferbuilder = Tesselator.getInstance().getBuilder();
+        RenderSystem.setShader(GameRenderer::getPositionColorProgram);
+        BufferBuilder bufferbuilder = Tessellator.getInstance().getBuffer();
 
-        bufferbuilder.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_COLOR);
-        bufferbuilder.vertex(x, y + height, Z_LEVEL).color(g, g, g, a).endVertex();
-        bufferbuilder.vertex(x + width, y + height, Z_LEVEL).color(g, g, g, a).endVertex();
-        bufferbuilder.vertex(x + width, y, Z_LEVEL).color(g, g, g, a).endVertex();
-        bufferbuilder.vertex(x, y, Z_LEVEL).color(g, g, g, a).endVertex();
+        bufferbuilder.begin(VertexFormat.DrawMode.QUADS, VertexFormats.POSITION_COLOR);
+        bufferbuilder.vertex(x, y + height, Z_LEVEL).color(g, g, g, a).next();
+        bufferbuilder.vertex(x + width, y + height, Z_LEVEL).color(g, g, g, a).next();
+        bufferbuilder.vertex(x + width, y, Z_LEVEL).color(g, g, g, a).next();
+        bufferbuilder.vertex(x, y, Z_LEVEL).color(g, g, g, a).next();
 
-        BufferUploader.drawWithShader(bufferbuilder.end());
+        BufferRenderer.drawWithGlobalProgram(bufferbuilder.end());
     }
 }

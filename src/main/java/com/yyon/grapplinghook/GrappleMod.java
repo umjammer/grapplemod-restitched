@@ -7,8 +7,8 @@ import me.shedaniel.autoconfig.AutoConfig;
 import me.shedaniel.autoconfig.ConfigHolder;
 import me.shedaniel.autoconfig.serializer.GsonConfigSerializer;
 import net.fabricmc.api.ModInitializer;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.InteractionResult;
+import net.minecraft.util.ActionResult;
+import net.minecraft.util.Identifier;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -45,12 +45,12 @@ public class GrappleMod implements ModInitializer {
         ConfigHolder<?> cfg = AutoConfig.register(GrappleConfig.class, GsonConfigSerializer::new);
         cfg.registerSaveListener((holder, config) -> {
             GrappleModItems.invalidateCreativeTabCache();
-            return InteractionResult.SUCCESS;
+            return ActionResult.SUCCESS;
         });
 
         cfg.registerLoadListener((holder, config) -> {
             GrappleModItems.invalidateCreativeTabCache();
-            return InteractionResult.SUCCESS;
+            return ActionResult.SUCCESS;
         });
 
         GrappleModBlocks.registerAllBlocks();
@@ -62,10 +62,10 @@ public class GrappleMod implements ModInitializer {
         NetworkManager.registerPacketListeners();
     }
 
-    public static ResourceLocation id(String id) {
-        return new ResourceLocation(MODID, id);
+    public static Identifier id(String id) {
+        return new Identifier(MODID, id);
     }
-    public static ResourceLocation fakeId(String id) {
-        return new ResourceLocation("minecraft", id);
+    public static Identifier fakeId(String id) {
+        return new Identifier("minecraft", id);
     }
 }

@@ -5,14 +5,14 @@ import com.yyon.grapplinghook.network.serverbound.GrappleModifierMessage;
 import com.yyon.grapplinghook.registry.GrappleModBlockEntities;
 import com.yyon.grapplinghook.util.GrappleCustomization;
 import com.yyon.grapplinghook.util.GrappleCustomization.UpgradeCategories;
-import net.minecraft.core.BlockPos;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
-import net.minecraft.world.level.block.entity.BlockEntity;
-import net.minecraft.world.level.block.state.BlockState;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.HashMap;
+import net.minecraft.block.BlockState;
+import net.minecraft.block.entity.BlockEntity;
+import net.minecraft.nbt.NbtCompound;
+import net.minecraft.network.packet.s2c.play.BlockEntityUpdateS2CPacket;
+import net.minecraft.util.math.BlockPos;
 
 public class GrappleModifierBlockEntity extends BlockEntity {
 	public HashMap<UpgradeCategories, Boolean> unlockedCategories = new HashMap<>();
@@ -24,10 +24,10 @@ public class GrappleModifierBlockEntity extends BlockEntity {
 	}
 
 	private void triggerUpdate() {
-		if(this.level != null) {
-			BlockState state = this.level.getBlockState(worldPosition);
-			this.level.sendBlockUpdated(worldPosition, state, state, 3);
-			this.setChanged();
+		if(this.world != null) {
+			BlockState state = this.world.getBlockState(pos);
+			this.world.updateListeners(pos, state, state, 3);
+			this.markDirty();
 		}
 	}
 
@@ -38,7 +38,7 @@ public class GrappleModifierBlockEntity extends BlockEntity {
 
 	public void setCustomizationClient(GrappleCustomization customization) {
 		this.customization = customization;
-		NetworkManager.packetToServer(new GrappleModifierMessage(this.worldPosition, this.customization));
+		NetworkManager.packetToServer(new GrappleModifierMessage(this.pos, this.customization));
 		this.triggerUpdate();
 	}
 
@@ -52,10 +52,10 @@ public class GrappleModifierBlockEntity extends BlockEntity {
 	}
 
 	@Override
-	public void saveAdditional(CompoundTag nbtTagCompound) {
-		super.saveAdditional(nbtTagCompound);
+	public void writeNbt(NbtCompound nbtTagCompound) {
+		super.writeNbt(nbtTagCompound);
 
-		CompoundTag unlockedNBT = nbtTagCompound.getCompound("unlocked");
+		NbtCompound unlockedNBT = nbtTagCompound.getCompound("unlocked");
 
 		for (UpgradeCategories category : UpgradeCategories.values()) {
 			String num = String.valueOf(category.toInt());
@@ -69,10 +69,10 @@ public class GrappleModifierBlockEntity extends BlockEntity {
 	}
 
 	@Override
-	public void load(CompoundTag parentNBTTagCompound) {
-		super.load(parentNBTTagCompound); // The super call is required to load the tiles location
+	public void readNbt(NbtCompound parentNBTTagCompound) {
+		super.readNbt(parentNBTTagCompound); // The super call is required to load the tiles location
 
-		CompoundTag unlockedNBT = parentNBTTagCompound.getCompound("unlocked");
+		NbtCompound unlockedNBT = parentNBTTagCompound.getCompound("unlocked");
 
 		for (UpgradeCategories category : UpgradeCategories.values()) {
 			String num = String.valueOf(category.toInt());
@@ -81,24 +81,24 @@ public class GrappleModifierBlockEntity extends BlockEntity {
 			this.unlockedCategories.put(category, unlocked);
 		}
 
-		CompoundTag custom = parentNBTTagCompound.getCompound("customization");
+		NbtCompound custom = parentNBTTagCompound.getCompound("customization");
 		this.customization.loadNBT(custom);
 	}
 
 	@Override
-	public ClientboundBlockEntityDataPacket getUpdatePacket() {
-		CompoundTag nbtTagCompound = new CompoundTag();
-		this.saveAdditional(nbtTagCompound);
-		return ClientboundBlockEntityDataPacket.create(this);
+	public BlockEntityUpdateS2CPacket toUpdatePacket() {
+		NbtCompound nbtTagCompound = new NbtCompound();
+		this.writeNbt(nbtTagCompound);
+		return BlockEntityUpdateS2CPacket.create(this);
 	}
 
 
 	/* Creates a tag containing all of the TileEntity information, used by vanilla to transmit from server to client */
 	@Override
 	@NotNull
-	public CompoundTag getUpdateTag() {
-		CompoundTag nbtTagCompound = new CompoundTag();
-		this.saveAdditional(nbtTagCompound);
+	public NbtCompound toInitialChunkDataNbt() {
+		NbtCompound nbtTagCompound = new NbtCompound();
+		this.writeNbt(nbtTagCompound);
 		return nbtTagCompound;
 	}
 

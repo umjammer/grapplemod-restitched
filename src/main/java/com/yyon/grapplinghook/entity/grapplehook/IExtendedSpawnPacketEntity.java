@@ -1,9 +1,9 @@
 package com.yyon.grapplinghook.entity.grapplehook;
 
-import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.PacketByteBuf;
 
 public interface IExtendedSpawnPacketEntity {
 
-    void writeSpawnData(FriendlyByteBuf data);
-    void readSpawnData(FriendlyByteBuf data);
+    void writeSpawnData(PacketByteBuf data);
+    void readSpawnData(PacketByteBuf data);
 }

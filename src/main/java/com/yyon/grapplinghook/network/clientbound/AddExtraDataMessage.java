@@ -6,10 +6,10 @@ import com.yyon.grapplinghook.network.NetworkContext;
 import io.netty.buffer.Unpooled;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
-import net.minecraft.client.Minecraft;
-import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.entity.Entity;
+import net.minecraft.client.MinecraftClient;
+import net.minecraft.entity.Entity;
+import net.minecraft.network.PacketByteBuf;
+import net.minecraft.util.Identifier;
 
 public class AddExtraDataMessage extends BaseMessageClient {
 
@@ -23,12 +23,12 @@ public class AddExtraDataMessage extends BaseMessageClient {
         this.extraData = new byte[0];
     }
 
-    public AddExtraDataMessage(FriendlyByteBuf buf) {
+    public AddExtraDataMessage(PacketByteBuf buf) {
         super(buf);
     }
 
     @Override
-    public void decode(FriendlyByteBuf buf) {
+    public void decode(PacketByteBuf buf) {
         this.entityId = buf.readVarInt();
 
         int readableBytes = buf.readVarInt();
@@ -37,11 +37,11 @@ public class AddExtraDataMessage extends BaseMessageClient {
     }
 
     @Override
-    public void encode(FriendlyByteBuf buf) {
+    public void encode(PacketByteBuf buf) {
         buf.writeVarInt(this.entity.getId());
 
         if (entity instanceof IExtendedSpawnPacketEntity entityAdditionalSpawnData) {
-            final FriendlyByteBuf spawnDataBuffer = new FriendlyByteBuf(Unpooled.buffer());
+            final PacketByteBuf spawnDataBuffer = new PacketByteBuf(Unpooled.buffer());
 
             entityAdditionalSpawnData.writeSpawnData(spawnDataBuffer);
 
@@ -57,7 +57,7 @@ public class AddExtraDataMessage extends BaseMessageClient {
     }
 
     @Override
-    public ResourceLocation getChannel() {
+    public Identifier getChannel() {
         return GrappleMod.id("data");
     }
 
@@ -65,13 +65,13 @@ public class AddExtraDataMessage extends BaseMessageClient {
     @Override
     public void processMessage(NetworkContext ctx) {
         ctx.getClient().execute(() -> {
-            if(Minecraft.getInstance().level == null)
+            if(MinecraftClient.getInstance().world == null)
                 throw new IllegalStateException("World must not be null");
 
-            this.entity = Minecraft.getInstance().level.getEntity(this.entityId);
+            this.entity = MinecraftClient.getInstance().world.getEntityById(this.entityId);
 
             if (this.entity instanceof IExtendedSpawnPacketEntity entityAdditionalSpawnData) {
-                FriendlyByteBuf buf = new FriendlyByteBuf(Unpooled.wrappedBuffer(this.extraData));
+                PacketByteBuf buf = new PacketByteBuf(Unpooled.wrappedBuffer(this.extraData));
                 entityAdditionalSpawnData.readSpawnData(buf);
                 buf.release();
             }

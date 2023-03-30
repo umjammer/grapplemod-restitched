@@ -10,14 +10,13 @@ import com.yyon.grapplinghook.util.GrappleCustomization;
 import com.yyon.grapplinghook.util.Vec;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
-import net.minecraft.client.Minecraft;
-import net.minecraft.core.BlockPos;
-import net.minecraft.core.Direction;
-import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.entity.Entity;
-import net.minecraft.world.level.Level;
-
+import net.minecraft.client.MinecraftClient;
+import net.minecraft.entity.Entity;
+import net.minecraft.network.PacketByteBuf;
+import net.minecraft.util.Identifier;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.Direction;
+import net.minecraft.world.World;
 import java.util.LinkedList;
 
 /*
@@ -51,7 +50,7 @@ public class GrappleAttachMessage extends BaseMessageClient {
 	public LinkedList<Direction> segmentBottomSides;
 	public GrappleCustomization custom;
 
-    public GrappleAttachMessage(FriendlyByteBuf buf) {
+    public GrappleAttachMessage(PacketByteBuf buf) {
     	super(buf);
     }
 
@@ -70,7 +69,7 @@ public class GrappleAttachMessage extends BaseMessageClient {
     }
 
     @Override
-    public void decode(FriendlyByteBuf buf) {
+    public void decode(PacketByteBuf buf) {
     	this.id = buf.readInt();
         this.x = buf.readDouble();
         this.y = buf.readDouble();
@@ -96,8 +95,8 @@ public class GrappleAttachMessage extends BaseMessageClient {
 		
 		for (int i = 1; i < size-1; i++) {
         	this.segments.add(new Vec(buf.readDouble(), buf.readDouble(), buf.readDouble()));
-        	this.segmentBottomSides.add(buf.readEnum(Direction.class));
-        	this.segmentTopSides.add(buf.readEnum(Direction.class));
+        	this.segmentBottomSides.add(buf.readEnumConstant(Direction.class));
+        	this.segmentTopSides.add(buf.readEnumConstant(Direction.class));
         }
 		
 		segments.add(new Vec(0, 0, 0));
@@ -106,7 +105,7 @@ public class GrappleAttachMessage extends BaseMessageClient {
     }
 
     @Override
-    public void encode(FriendlyByteBuf buf) {
+    public void encode(PacketByteBuf buf) {
     	buf.writeInt(this.id);
         buf.writeDouble(this.x);
         buf.writeDouble(this.y);
@@ -124,27 +123,27 @@ public class GrappleAttachMessage extends BaseMessageClient {
         	buf.writeDouble(this.segments.get(i).x);
         	buf.writeDouble(this.segments.get(i).y);
         	buf.writeDouble(this.segments.get(i).z);
-        	buf.writeEnum(this.segmentBottomSides.get(i));
-        	buf.writeEnum(this.segmentTopSides.get(i));
+        	buf.writeEnumConstant(this.segmentBottomSides.get(i));
+        	buf.writeEnumConstant(this.segmentTopSides.get(i));
         }
     }
 
     @Override
-    public ResourceLocation getChannel() {
+    public Identifier getChannel() {
         return GrappleMod.id("grapple_attach");
     }
 
     @Environment(EnvType.CLIENT)
     @Override
     public void processMessage(NetworkContext ctx) {
-		Level world = Minecraft.getInstance().level;
+		World world = MinecraftClient.getInstance().world;
 
         if(world == null) {
             GrappleMod.LOGGER.warn("Network Message received in invalid context (World not present | GrappleAttach)");
             return;
         }
 
-    	if (world.getEntity(this.id) instanceof GrapplehookEntity grapple) {
+    	if (world.getEntityById(this.id) instanceof GrapplehookEntity grapple) {
 
         	grapple.clientAttach(this.x, this.y, this.z);
         	SegmentHandler segmenthandler = grapple.segmentHandler;
@@ -152,7 +151,7 @@ public class GrappleAttachMessage extends BaseMessageClient {
         	segmenthandler.segmentBottomSides = this.segmentBottomSides;
         	segmenthandler.segmentTopSides = this.segmentTopSides;
         	
-        	Entity holder = world.getEntity(this.entityId);
+        	Entity holder = world.getEntityById(this.entityId);
 
             if(holder == null) {
                 GrappleMod.LOGGER.warn("Network Message received in invalid context (Holder does not exist | GrappleAttach)");

@@ -8,12 +8,12 @@ import com.yyon.grapplinghook.network.clientbound.BaseMessageClient;
 import com.yyon.grapplinghook.util.Vec;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
-import net.minecraft.client.Minecraft;
-import net.minecraft.core.Direction;
-import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.entity.Entity;
-import net.minecraft.world.level.Level;
+import net.minecraft.client.MinecraftClient;
+import net.minecraft.entity.Entity;
+import net.minecraft.network.PacketByteBuf;
+import net.minecraft.util.Identifier;
+import net.minecraft.util.math.Direction;
+import net.minecraft.world.World;
 
 /*
  * This file is part of GrappleMod.
@@ -41,7 +41,7 @@ public class SegmentMessage extends BaseMessageClient {
 	public Direction topFacing;
 	public Direction bottomFacing;
 
-    public SegmentMessage(FriendlyByteBuf buf) {
+    public SegmentMessage(PacketByteBuf buf) {
     	super(buf);
     }
 
@@ -55,37 +55,37 @@ public class SegmentMessage extends BaseMessageClient {
     }
 
 	@Override
-    public void decode(FriendlyByteBuf buf) {
+    public void decode(PacketByteBuf buf) {
     	this.id = buf.readInt();
     	this.add = buf.readBoolean();
     	this.index = buf.readInt();
     	this.pos = new Vec(buf.readDouble(), buf.readDouble(), buf.readDouble());
-    	this.topFacing = buf.readEnum(Direction.class);
-    	this.bottomFacing = buf.readEnum(Direction.class);
+    	this.topFacing = buf.readEnumConstant(Direction.class);
+    	this.bottomFacing = buf.readEnumConstant(Direction.class);
     }
 
 	@Override
-    public void encode(FriendlyByteBuf buf) {
+    public void encode(PacketByteBuf buf) {
     	buf.writeInt(this.id);
     	buf.writeBoolean(this.add);
     	buf.writeInt(this.index);
     	buf.writeDouble(pos.x);
     	buf.writeDouble(pos.y);
     	buf.writeDouble(pos.z);
-    	buf.writeEnum(this.topFacing);
-    	buf.writeEnum(this.bottomFacing);
+    	buf.writeEnumConstant(this.topFacing);
+    	buf.writeEnumConstant(this.bottomFacing);
     }
 
 	@Override
-	public ResourceLocation getChannel() {
+	public Identifier getChannel() {
 		return GrappleMod.id("segment");
 	}
 
     @Environment(EnvType.CLIENT)
 	@Override
     public void processMessage(NetworkContext ctx) {
-    	Level world = Minecraft.getInstance().level;
-    	Entity grapple = world.getEntity(this.id);
+    	World world = MinecraftClient.getInstance().world;
+    	Entity grapple = world.getEntityById(this.id);
     	if (grapple == null) {
     		return;
     	}

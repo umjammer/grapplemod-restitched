@@ -7,24 +7,23 @@ import com.yyon.grapplinghook.util.GrappleModUtils;
 import com.yyon.grapplinghook.util.Vec;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
-import net.minecraft.network.chat.Component;
-import net.minecraft.world.InteractionHand;
-import net.minecraft.world.InteractionResultHolder;
-import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.Item;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.TooltipFlag;
-import net.minecraft.world.level.Level;
-
+import net.minecraft.client.item.TooltipContext;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.item.Item;
+import net.minecraft.item.ItemStack;
+import net.minecraft.text.Text;
+import net.minecraft.util.Hand;
+import net.minecraft.util.TypedActionResult;
+import net.minecraft.world.World;
 import java.util.List;
 
 public class ForcefieldItem extends Item {
 	public ForcefieldItem() {
-		super(new Item.Properties().stacksTo(1));
+		super(new Item.Settings().maxCount(1));
 	}
 	
-	public void doRightClick(ItemStack stack, Level worldIn, Player player) {
-		if (worldIn.isClientSide) {
+	public void doRightClick(ItemStack stack, World worldIn, PlayerEntity player) {
+		if (worldIn.isClient) {
 			int playerid = player.getId();
 			GrappleController oldController = GrappleModClient.get().unregisterController(playerid);
 			if (oldController == null || oldController.controllerId == GrappleModUtils.AIR_FRICTION_ID) {
@@ -34,26 +33,26 @@ public class ForcefieldItem extends Item {
 	}
 
     @Override
-    public InteractionResultHolder<ItemStack> use(Level worldIn, Player playerIn, InteractionHand hand) {
-    	ItemStack stack = playerIn.getItemInHand(hand);
+    public TypedActionResult<ItemStack> use(World worldIn, PlayerEntity playerIn, Hand hand) {
+    	ItemStack stack = playerIn.getStackInHand(hand);
         this.doRightClick(stack, worldIn, playerIn);
         
-    	return InteractionResultHolder.success(stack);
+    	return TypedActionResult.success(stack);
 	}
     
 	@Override
 	@Environment(EnvType.CLIENT)
-	public void appendHoverText(ItemStack stack, Level world, List<Component> list, TooltipFlag par4) {
-		list.add(Component.translatable("grappletooltip.repelleritem.desc"));
-		list.add(Component.translatable("grappletooltip.repelleritem2.desc"));
-		list.add(Component.literal(""));
-		list.add(Component.literal(GrappleModClient.get().getKeyname(MCKeys.keyBindUseItem) + Component.translatable("grappletooltip.repelleritemon.desc").getString()));
-		list.add(Component.literal(GrappleModClient.get().getKeyname(MCKeys.keyBindUseItem) + Component.translatable("grappletooltip.repelleritemoff.desc").getString()));
-		list.add(Component.literal(GrappleModClient.get().getKeyname(MCKeys.keyBindSneak) + Component.translatable("grappletooltip.repelleritemslow.desc").getString()));
-		list.add(Component.literal(GrappleModClient.get().getKeyname(MCKeys.keyBindForward) + ", " +
+	public void appendTooltip(ItemStack stack, World world, List<Text> list, TooltipContext par4) {
+		list.add(Text.translatable("grappletooltip.repelleritem.desc"));
+		list.add(Text.translatable("grappletooltip.repelleritem2.desc"));
+		list.add(Text.literal(""));
+		list.add(Text.literal(GrappleModClient.get().getKeyname(MCKeys.keyBindUseItem) + Text.translatable("grappletooltip.repelleritemon.desc").getString()));
+		list.add(Text.literal(GrappleModClient.get().getKeyname(MCKeys.keyBindUseItem) + Text.translatable("grappletooltip.repelleritemoff.desc").getString()));
+		list.add(Text.literal(GrappleModClient.get().getKeyname(MCKeys.keyBindSneak) + Text.translatable("grappletooltip.repelleritemslow.desc").getString()));
+		list.add(Text.literal(GrappleModClient.get().getKeyname(MCKeys.keyBindForward) + ", " +
 				GrappleModClient.get().getKeyname(MCKeys.keyBindLeft) + ", " +
 				GrappleModClient.get().getKeyname(MCKeys.keyBindBack) + ", " +
 				GrappleModClient.get().getKeyname(MCKeys.keyBindRight) +
-				" " + Component.translatable("grappletooltip.repelleritemmove.desc").getString()));
+				" " + Text.translatable("grappletooltip.repelleritemmove.desc").getString()));
 	}
 }

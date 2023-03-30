@@ -1,22 +1,22 @@
 package com.yyon.grapplinghook.network;
 
 import net.fabricmc.fabric.api.networking.v1.PacketSender;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.multiplayer.ClientPacketListener;
+import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.network.ClientPlayNetworkHandler;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.server.network.ServerGamePacketListenerImpl;
+import net.minecraft.server.network.ServerPlayNetworkHandler;
+import net.minecraft.server.network.ServerPlayerEntity;
 
 public final class NetworkContext {
 
     // Server
     private MinecraftServer server = null;
-    private ServerPlayer sender = null;
-    private ServerGamePacketListenerImpl serverHandle = null;
+    private ServerPlayerEntity sender = null;
+    private ServerPlayNetworkHandler serverHandle = null;
 
     // Client
-    private Minecraft client = null;
-    private ClientPacketListener clientHandle = null;
+    private MinecraftClient client = null;
+    private ClientPlayNetworkHandler clientHandle = null;
 
     // Read Only
     private PacketSender respond = null;
@@ -30,21 +30,21 @@ public final class NetworkContext {
         return server;
     }
 
-    public ServerPlayer getSender() {
+    public ServerPlayerEntity getSender() {
         return this.sender;
     }
 
-    public ServerGamePacketListenerImpl getServerHandle() {
+    public ServerPlayNetworkHandler getServerHandle() {
         return serverHandle;
     }
 
 
     // Client
-    public Minecraft getClient() {
+    public MinecraftClient getClient() {
         return client;
     }
 
-    public ClientPacketListener getClientHandle() {
+    public ClientPlayNetworkHandler getClientHandle() {
         return clientHandle;
     }
 
@@ -64,7 +64,7 @@ public final class NetworkContext {
 
 
 
-    NetworkContext setSender(ServerPlayer sender) {
+    NetworkContext setSender(ServerPlayerEntity sender) {
         this.sender = sender;
         return this;
     }
@@ -79,7 +79,7 @@ public final class NetworkContext {
         return this;
     }
 
-    NetworkContext setClient(Minecraft client) {
+    NetworkContext setClient(MinecraftClient client) {
         this.client = client;
         return this;
     }
@@ -89,12 +89,12 @@ public final class NetworkContext {
         return this;
     }
 
-    NetworkContext setServerHandle(ServerGamePacketListenerImpl serverHandle) {
+    NetworkContext setServerHandle(ServerPlayNetworkHandler serverHandle) {
         this.serverHandle = serverHandle;
         return this;
     }
 
-    NetworkContext setClientHandle(ClientPacketListener clientHandle) {
+    NetworkContext setClientHandle(ClientPlayNetworkHandler clientHandle) {
         this.clientHandle = clientHandle;
         return this;
     }

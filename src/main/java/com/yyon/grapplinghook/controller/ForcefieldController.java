@@ -1,11 +1,11 @@
 package com.yyon.grapplinghook.controller;
 
 import com.yyon.grapplinghook.util.Vec;
-import net.minecraft.world.entity.Entity;
-import net.minecraft.world.level.Level;
+import net.minecraft.entity.Entity;
+import net.minecraft.world.World;
 
 public class ForcefieldController extends GrappleController {
-	public ForcefieldController(int grapplehookEntityId, int entityId, Level world, int id) {
+	public ForcefieldController(int grapplehookEntityId, int entityId, World world, int id) {
 		super(grapplehookEntityId, entityId, world, id, null);
 		
 		this.playerMovementMult = 1;
@@ -29,7 +29,7 @@ public class ForcefieldController extends GrappleController {
 				}
 				applyPlayerMovement();
 
-				Vec blockpush = checkRepel(playerpos, entity.level);
+				Vec blockpush = checkRepel(playerpos, entity.world);
 				blockpush.mult_ip(0.5);
 				blockpush = new Vec(blockpush.x*0.5, blockpush.y*2, blockpush.z*0.5);
 				this.motion.add_ip(blockpush);

@@ -2,9 +2,8 @@ package com.yyon.grapplinghook.config;
 
 import com.yyon.grapplinghook.registry.GrappleModItems;
 import com.yyon.grapplinghook.util.GrappleCustomization;
-import net.minecraft.world.item.ItemStack;
-
 import java.util.*;
+import net.minecraft.item.ItemStack;
 
 // These mimic the old recipes, automatically checking if a given template is valid.
 public class GrappleHookTemplate {
@@ -161,7 +160,7 @@ public class GrappleHookTemplate {
     }
 
     public ItemStack getAsStack() {
-        ItemStack itemStack = GrappleModItems.GRAPPLING_HOOK.get().getDefaultInstance();
+        ItemStack itemStack = GrappleModItems.GRAPPLING_HOOK.get().getDefaultStack();
         GrappleModItems.GRAPPLING_HOOK.get().setCustomOnServer(itemStack, this.getCustomizations());
 
         return itemStack;

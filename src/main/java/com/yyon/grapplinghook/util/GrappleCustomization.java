@@ -5,13 +5,12 @@ import com.yyon.grapplinghook.config.GrappleConfig;
 import com.yyon.grapplinghook.GrappleMod;
 import com.yyon.grapplinghook.registry.GrappleModItems;
 import io.netty.buffer.ByteBuf;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.network.chat.Component;
-import net.minecraft.world.item.Item;
-
 import java.nio.ByteBuffer;
 import java.util.zip.CRC32;
 import java.util.zip.Checksum;
+import net.minecraft.item.Item;
+import net.minecraft.nbt.NbtCompound;
+import net.minecraft.text.Text;
 
 public class GrappleCustomization {
 	public static final String[] booleanoptions = new String[] {"phaserope", "motor", "motorwhencrouching", "motorwhennotcrouching", "smartmotor", "enderstaff", "repel", "attract", "doublehook", "smartdoublemotor", "motordampener", "reelin", "pullbackwards", "oneropepull", "sticky", "detachonkeyrelease", "rocket"};
@@ -87,7 +86,7 @@ public class GrappleCustomization {
 		
 		public String getName() {
 			if (GrappleModClientCheck.isClientLoaded()) {
-				return Component.translatable("grapplemod.upgradecategories." + this.nameUnlocalized).getString();
+				return Text.translatable("grapplemod.upgradecategories." + this.nameUnlocalized).getString();
 			} else {
 				return nameUnlocalized;
 			}
@@ -185,8 +184,8 @@ public class GrappleCustomization {
 		};
 	}
 
-	public CompoundTag writeNBT() {
-		CompoundTag compound = new CompoundTag();
+	public NbtCompound writeNBT() {
+		NbtCompound compound = new NbtCompound();
 		for (String option : booleanoptions) {
 			compound.putBoolean(option, this.getBoolean(option));
 		}
@@ -197,7 +196,7 @@ public class GrappleCustomization {
 		return compound;
 	}
 	
-	public void loadNBT(CompoundTag compound) {
+	public void loadNBT(NbtCompound compound) {
 		for (String option : booleanoptions) {
 			if (compound.contains(option)) {
 				this.setBoolean(option, compound.getBoolean(option));

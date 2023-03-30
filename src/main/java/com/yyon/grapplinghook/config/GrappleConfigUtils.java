@@ -1,11 +1,10 @@
 package com.yyon.grapplinghook.config;
 
 import com.yyon.grapplinghook.registry.GrappleModBlocks;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.item.enchantment.Enchantment.Rarity;
-import net.minecraft.world.level.block.Block;
-
 import java.util.HashSet;
+import net.minecraft.block.Block;
+import net.minecraft.enchantment.Enchantment.Rarity;
+import net.minecraft.util.Identifier;
 
 public class GrappleConfigUtils {
 	private static boolean anyBlocks = true;
@@ -36,7 +35,7 @@ public class GrappleConfigUtils {
 	    		name = str;
 	    	}
 	    	
-	    	Block b = GrappleModBlocks.getBlocks().get(new ResourceLocation(modid, name)).get();
+	    	Block b = GrappleModBlocks.getBlocks().get(new Identifier(modid, name)).get();
 	    	
 	    	blocks.add(b);
 	    }

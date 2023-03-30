@@ -4,9 +4,9 @@ import com.yyon.grapplinghook.GrappleMod;
 import com.yyon.grapplinghook.network.NetworkContext;
 import com.yyon.grapplinghook.network.serverbound.BaseMessageServer;
 import com.yyon.grapplinghook.util.Vec;
-import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.network.PacketByteBuf;
+import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.util.Identifier;
 
 /*
  * This file is part of GrappleMod.
@@ -35,7 +35,7 @@ public class PlayerMovementMessage extends BaseMessageServer {
 	public double my;
 	public double mz;
 	
-	public PlayerMovementMessage(FriendlyByteBuf buf) {
+	public PlayerMovementMessage(PacketByteBuf buf) {
 		super(buf);
 	}
 	
@@ -50,7 +50,7 @@ public class PlayerMovementMessage extends BaseMessageServer {
     }
 
 	@Override
-    public void decode(FriendlyByteBuf buf) {
+    public void decode(PacketByteBuf buf) {
     	try {
 	    	this.entityId = buf.readInt();
 	    	this.x = buf.readDouble();
@@ -66,7 +66,7 @@ public class PlayerMovementMessage extends BaseMessageServer {
     }
 
 	@Override
-    public void encode(FriendlyByteBuf buf) {
+    public void encode(PacketByteBuf buf) {
         buf.writeInt(entityId);
         buf.writeDouble(x);
         buf.writeDouble(y);
@@ -78,20 +78,20 @@ public class PlayerMovementMessage extends BaseMessageServer {
     }
 
 	@Override
-	public ResourceLocation getChannel() {
+	public Identifier getChannel() {
 		return GrappleMod.id("player_movement");
 	}
 
 	@Override
     public void processMessage(NetworkContext ctx) {
-    	final ServerPlayer referencedPlayer = ctx.getSender();
+    	final ServerPlayerEntity referencedPlayer = ctx.getSender();
 
 		ctx.getServer().execute(() -> {
 			if(referencedPlayer.getId() == this.entityId) {
 				new Vec(this.x, this.y, this.z).setPos(referencedPlayer);
 				new Vec(this.mx, this.my, this.mz).setMotion(referencedPlayer);
 
-				referencedPlayer.connection.resetPosition();
+				referencedPlayer.networkHandler.syncWithPlayerPosition();
 
 				if (!referencedPlayer.isOnGround()) {
 					if (this.my >= 0) {

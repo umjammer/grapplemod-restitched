@@ -29,12 +29,13 @@ repositories {
 
 dependencies {
     minecraft "com.mojang:minecraft:${project.minecraft_version}"
-    mappings loom.layered() {
-        officialMojangMappings()
-
-        if(project.parchment_version != "")
-            parchment("org.parchmentmc.data:${project.parchment_version}@zip")
-    }
+    mappings "net.fabricmc:yarn:${project.yarn_mappings}:v2"
+//    mappings loom.layered() {
+//        officialMojangMappings()
+//
+//        if(project.parchment_version != "")
+//            parchment("org.parchmentmc.data:${project.parchment_version}@zip")
+//    }
 
     modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
     modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
@@ -95,8 +96,12 @@ java {
 
 jar {
     from("LICENSE") {
-        rename { "${it}_${project.archivesBaseName}" }
+        rename { "${it}_${base.archivesName.get()}" }
     }
+}
+
+assemble {
+    version += "-${project.minecraft_version}-release"
 }
 
 // configure the maven publication

@@ -1,11 +1,10 @@
 package com.yyon.grapplinghook.util.model;
 
-import net.minecraft.client.model.geom.ModelPart;
-import net.minecraft.client.model.geom.builders.MeshDefinition;
-import net.minecraft.client.model.geom.builders.PartDefinition;
-
 import java.util.*;
 import java.util.function.Supplier;
+import net.minecraft.client.model.ModelData;
+import net.minecraft.client.model.ModelPart;
+import net.minecraft.client.model.ModelPartData;
 
 public class ModelPath {
 
@@ -21,11 +20,11 @@ public class ModelPath {
     }
 
 
-    public static PartDefinition goTo(MeshDefinition mesh, Iterator<String> path) {
+    public static ModelPartData goTo(ModelData mesh, Iterator<String> path) {
         return goTo(mesh.getRoot(), path);
     }
 
-    public static PartDefinition goTo(PartDefinition root, Iterator<String> path) {
+    public static ModelPartData goTo(ModelPartData root, Iterator<String> path) {
         return path.hasNext()
                 ? goTo(root.getChild(path.next()), path)
                 : root;

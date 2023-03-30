@@ -1,15 +1,15 @@
 package com.yyon.grapplinghook.mixin.client;
 
-import com.mojang.blaze3d.vertex.PoseStack;
 import com.yyon.grapplinghook.client.ClientControllerManager;
 import com.yyon.grapplinghook.config.GrappleConfig;
 import com.yyon.grapplinghook.controller.AirfrictionController;
 import com.yyon.grapplinghook.controller.GrappleController;
 import com.yyon.grapplinghook.util.Vec;
-import net.minecraft.client.Camera;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.GameRenderer;
-import net.minecraft.world.entity.player.Player;
+import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.render.Camera;
+import net.minecraft.client.render.GameRenderer;
+import net.minecraft.client.util.math.MatrixStack;
+import net.minecraft.entity.player.PlayerEntity;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -22,18 +22,18 @@ public class CameraSetupHookMixin {
 
     @Final
     @Shadow
-    private Camera mainCamera;
+    private Camera camera;
 
     protected float currentCameraTilt = 0;
-    @Inject(method = "renderLevel(FJLcom/mojang/blaze3d/vertex/PoseStack;)V",
+    @Inject(method = "renderWorld(FJLnet/minecraft/client/util/math/MatrixStack;)V",
             at = @At(
                     value = "INVOKE",
-                    target = "Lnet/minecraft/client/Camera;setup(Lnet/minecraft/world/level/BlockGetter;Lnet/minecraft/world/entity/Entity;ZZF)V",
+                    target = "Lnet/minecraft/client/render/Camera;update(Lnet/minecraft/world/BlockView;Lnet/minecraft/entity/Entity;ZZF)V",
                     shift = At.Shift.AFTER
             ))
-    public void postCameraSetup(float partialTicks, long finishTimeNano, PoseStack matrixStack, CallbackInfo ci) {
-        Player player = Minecraft.getInstance().player;
-        if (!Minecraft.getInstance().isRunning() || player == null) {
+    public void postCameraSetup(float partialTicks, long finishTimeNano, MatrixStack matrixStack, CallbackInfo ci) {
+        PlayerEntity player = MinecraftClient.getInstance().player;
+        if (!MinecraftClient.getInstance().isRunning() || player == null) {
             return;
         }
 

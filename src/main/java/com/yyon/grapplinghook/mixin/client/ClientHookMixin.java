@@ -5,21 +5,21 @@ import com.yyon.grapplinghook.client.keybind.GrappleModKeyBindings;
 import com.yyon.grapplinghook.config.GrappleConfig;
 import com.yyon.grapplinghook.item.KeypressItem;
 import com.yyon.grapplinghook.registry.GrappleModBlocks;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.screens.Screen;
-import net.minecraft.core.BlockPos;
-import net.minecraft.world.InteractionHand;
-import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.phys.BlockHitResult;
-import net.minecraft.world.phys.HitResult;
+import net.minecraft.block.BlockState;
+import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.gui.screen.Screen;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.item.ItemStack;
+import net.minecraft.util.Hand;
+import net.minecraft.util.hit.BlockHitResult;
+import net.minecraft.util.hit.HitResult;
+import net.minecraft.util.math.BlockPos;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-@Mixin(Minecraft.class)
+@Mixin(MinecraftClient.class)
 public class ClientHookMixin {
 
     private static final boolean[] keyPressHistory = new boolean[]{ false, false, false, false, false };
@@ -27,17 +27,17 @@ public class ClientHookMixin {
 
     @Inject(method = "tick()V", at = @At("TAIL"))
     public void clientTickHook(CallbackInfo ci) {
-        Player player = Minecraft.getInstance().player;
+        PlayerEntity player = MinecraftClient.getInstance().player;
         if (player != null) {
-            if (!Minecraft.getInstance().isPaused()) {
+            if (!MinecraftClient.getInstance().isPaused()) {
                 ClientControllerManager.instance.onClientTick(player);
 
-                if (Minecraft.getInstance().screen == null) {
+                if (MinecraftClient.getInstance().currentScreen == null) {
                     // keep in same order as enum from KeypressItem
                     boolean[] keys = {
-                            GrappleModKeyBindings.key_enderlaunch.isDown(), GrappleModKeyBindings.key_leftthrow.isDown(),
-                            GrappleModKeyBindings.key_rightthrow.isDown(), GrappleModKeyBindings.key_boththrow.isDown(),
-                            GrappleModKeyBindings.key_rocket.isDown()
+                            GrappleModKeyBindings.key_enderlaunch.isPressed(), GrappleModKeyBindings.key_leftthrow.isPressed(),
+                            GrappleModKeyBindings.key_rightthrow.isPressed(), GrappleModKeyBindings.key_boththrow.isPressed(),
+                            GrappleModKeyBindings.key_rocket.isPressed()
                     };
 
                     for (int i = 0; i < keys.length; i++) {
@@ -66,32 +66,32 @@ public class ClientHookMixin {
         }
     }
 
-    @Inject(method = "clearLevel(Lnet/minecraft/client/gui/screens/Screen;)V", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/GameRenderer;resetData()V"))
+    @Inject(method = "disconnect(Lnet/minecraft/client/gui/screen/Screen;)V", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/render/GameRenderer;reset()V"))
     public void handleLogOut(Screen pScreen, CallbackInfo ci) {
         GrappleConfig.setServerOptions(null);
     }
 
 
-    public ItemStack getKeypressStack(Player player) {
+    public ItemStack getKeypressStack(PlayerEntity player) {
         if (player == null) return null;
 
         ItemStack stack;
 
-        stack = player.getItemInHand(InteractionHand.MAIN_HAND);
+        stack = player.getStackInHand(Hand.MAIN_HAND);
         if (stack.getItem() instanceof KeypressItem) return stack;
 
-        stack = player.getItemInHand(InteractionHand.OFF_HAND);
+        stack = player.getStackInHand(Hand.OFF_HAND);
         if (stack.getItem() instanceof KeypressItem) return stack;
 
         return null;
     }
 
-    public boolean isLookingAtModifierBlock(Player player) {
-        HitResult result = Minecraft.getInstance().hitResult;
+    public boolean isLookingAtModifierBlock(PlayerEntity player) {
+        HitResult result = MinecraftClient.getInstance().crosshairTarget;
         if (result != null && result.getType() == HitResult.Type.BLOCK) {
             BlockHitResult bray = (BlockHitResult) result;
             BlockPos pos = bray.getBlockPos();
-            BlockState state = player.level.getBlockState(pos);
+            BlockState state = player.world.getBlockState(pos);
 
             return (state.getBlock() == GrappleModBlocks.GRAPPLE_MODIFIER.get());
         }

@@ -1,8 +1,6 @@
 package com.yyon.grapplinghook.mixin.client;
 
 import com.google.common.collect.Maps;
-import com.mojang.blaze3d.platform.InputConstants;
-import net.minecraft.client.KeyMapping;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -12,38 +10,40 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import java.util.HashMap;
 import java.util.Map;
+import net.minecraft.client.option.KeyBinding;
+import net.minecraft.client.util.InputUtil;
 
 // Trying to avoid overwites and collisions by just making a new system
 // entirely and forwarding things to that.
-@Mixin(KeyMapping.class)
+@Mixin(KeyBinding.class)
 public abstract class NonConflictingKeyBindingMixin {
 
     // redirect away from the original to this
-    private static final Map<InputConstants.Key, HashMap<String, KeyMapping>> FULL_SELECTION = Maps.newHashMap();
+    private static final Map<InputUtil.Key, HashMap<String, KeyBinding>> FULL_SELECTION = Maps.newHashMap();
 
     @Final
     @Shadow
-    private static Map<String, KeyMapping> ALL;
+    private static Map<String, KeyBinding> KEYS_BY_ID;
 
     @Final
     @Shadow
-    private static Map<InputConstants.Key, KeyMapping> MAP;
+    private static Map<InputUtil.Key, KeyBinding> KEY_TO_BINDINGS;
 
-    @Shadow private int clickCount;
-    @Shadow private InputConstants.Key key;
+    @Shadow private int timesPressed;
+    @Shadow @Final private InputUtil.Key defaultKey;
 
-    @Shadow public abstract void setDown(boolean value);
+    @Shadow public abstract void setPressed(boolean value);
 
-    @Shadow @Final private String name;
+    @Shadow @Final private String translationKey;
 
-    @Shadow public abstract String getName();
+    @Shadow public abstract String getTranslationKey();
 
-    private static HashMap<String, KeyMapping> getOrCreateKeybindMapForKey(InputConstants.Key key) {
-        HashMap<String, KeyMapping> map = FULL_SELECTION.get(key);
+    private static HashMap<String, KeyBinding> getOrCreateKeybindMapForKey(InputUtil.Key key) {
+        HashMap<String, KeyBinding> map = FULL_SELECTION.get(key);
         if(map != null)
             return FULL_SELECTION.get(key);
 
-        HashMap<String, KeyMapping> mappingGroup = Maps.newHashMap();
+        HashMap<String, KeyBinding> mappingGroup = Maps.newHashMap();
         FULL_SELECTION.put(key, mappingGroup);
         return mappingGroup;
     }
@@ -51,74 +51,74 @@ public abstract class NonConflictingKeyBindingMixin {
 
 
 
-    @Inject(method = "click(Lcom/mojang/blaze3d/platform/InputConstants$Key;)V", at = @At("RETURN"))
-    private static void click(InputConstants.Key key, CallbackInfo ci) {
-        HashMap<String, KeyMapping> keyMappings = FULL_SELECTION.get(key);
+    @Inject(method = "onKeyPressed(Lnet/minecraft/client/util/InputUtil$Key;)V", at = @At("RETURN"))
+    private static void click(InputUtil.Key key, CallbackInfo ci) {
+        HashMap<String, KeyBinding> keyMappings = FULL_SELECTION.get(key);
 
         if (keyMappings != null) {
             keyMappings.forEach((n, m) -> {
-                KeyMapping primaryMapping = MAP.get(keyForMapping(m));
-                if(primaryMapping == null || !primaryMapping.getName().equals(n)) // don't double tap
-                    ++((NonConflictingKeyBindingMixin) (Object) m).clickCount;
+                KeyBinding primaryMapping = KEY_TO_BINDINGS.get(keyForMapping(m));
+                if(primaryMapping == null || !primaryMapping.getTranslationKey().equals(n)) // don't double tap
+                    ++((NonConflictingKeyBindingMixin) (Object) m).timesPressed;
             });
         }
     }
 
-    @Inject(method = "set(Lcom/mojang/blaze3d/platform/InputConstants$Key;Z)V", at = @At("RETURN"))
-    private static void set(InputConstants.Key key, boolean held, CallbackInfo ci) {
-        HashMap<String, KeyMapping> keyMappings = FULL_SELECTION.get(key);
+    @Inject(method = "setKeyPressed(Lnet/minecraft/client/util/InputUtil$Key;Z)V", at = @At("RETURN"))
+    private static void set(InputUtil.Key key, boolean held, CallbackInfo ci) {
+        HashMap<String, KeyBinding> keyMappings = FULL_SELECTION.get(key);
 
         if (keyMappings != null)
-            keyMappings.forEach((n, m) -> ((NonConflictingKeyBindingMixin) (Object) m).setDown(held));
+            keyMappings.forEach((n, m) -> ((NonConflictingKeyBindingMixin) (Object) m).setPressed(held));
     }
 
-    @Inject(method = "resetMapping()V", at = @At("RETURN"))
+    @Inject(method = "unpressAll()V", at = @At("RETURN"))
     private static void resetMapping(CallbackInfo ci) {
         FULL_SELECTION.clear();
 
-        ALL.values().forEach(keyMapping -> {
-            HashMap<String, KeyMapping> group = getOrCreateKeybindMapForKey(keyForMapping(keyMapping));
-            group.put(keyMapping.getName(), keyMapping);
+        KEYS_BY_ID.values().forEach(keyMapping -> {
+            HashMap<String, KeyBinding> group = getOrCreateKeybindMapForKey(keyForMapping(keyMapping));
+            group.put(keyMapping.getTranslationKey(), keyMapping);
         });
     }
 
 
-    @Inject(method = "<init>(Ljava/lang/String;Lcom/mojang/blaze3d/platform/InputConstants$Type;ILjava/lang/String;)V",
+    @Inject(method = "<init>(Ljava/lang/String;Lnet/minecraft/client/util/InputUtil$Type;ILjava/lang/String;)V",
             at = @At(value = "RETURN"))
-    private void injectConstructor(String name, InputConstants.Type type, int keyCode, String category, CallbackInfo ci) {
-        InputConstants.Key key = type.getOrCreate(keyCode);
-        KeyMapping olderMappingSharedName = ALL.get(name); // Older mapping for this mapping name
+    private void injectConstructor(String name, InputUtil.Type type, int keyCode, String category, CallbackInfo ci) {
+        InputUtil.Key key = type.createFromCode(keyCode);
+        KeyBinding olderMappingSharedName = KEYS_BY_ID.get(name); // Older mapping for this mapping name
 
         // If a keybinding for this name already exists, remove it.
         if(olderMappingSharedName != null) {
-            InputConstants.Key olderMappingKey = keyForMapping(olderMappingSharedName);
+            InputUtil.Key olderMappingKey = keyForMapping(olderMappingSharedName);
 
             if(FULL_SELECTION.containsKey(olderMappingKey)) {
                 FULL_SELECTION.get(olderMappingKey)
-                        .remove(olderMappingSharedName.getName());
+                        .remove(olderMappingSharedName.getTranslationKey());
             }
         }
 
-        HashMap<String, KeyMapping> group = getOrCreateKeybindMapForKey(key);
-        group.put(name, (KeyMapping) (Object) this);
+        HashMap<String, KeyBinding> group = getOrCreateKeybindMapForKey(key);
+        group.put(name, (KeyBinding) (Object) this);
     }
 
-    @Inject(method = "setKey", at = @At("HEAD"))
-    public void updateKey(InputConstants.Key key, CallbackInfo ci) {
-        InputConstants.Key oldKey = this.key;
+    @Inject(method = "setBoundKey", at = @At("HEAD"))
+    public void updateKey(InputUtil.Key key, CallbackInfo ci) {
+        InputUtil.Key oldKey = this.defaultKey;
 
         if(FULL_SELECTION.containsKey(oldKey)) {
-            FULL_SELECTION.get(oldKey).remove(this.name);
+            FULL_SELECTION.get(oldKey).remove(this.translationKey);
         }
 
-        KeyMapping oldMap = MAP.get(oldKey);
+        KeyBinding oldMap = KEY_TO_BINDINGS.get(oldKey);
 
-        if(oldMap != null && this.getName().equals(oldMap.getName())) {
-            MAP.remove(oldKey);
+        if(oldMap != null && this.getTranslationKey().equals(oldMap.getTranslationKey())) {
+            KEY_TO_BINDINGS.remove(oldKey);
         }
     }
 
-    private static InputConstants.Key keyForMapping(KeyMapping mapping) {
-        return ((NonConflictingKeyBindingMixin) (Object) mapping).key;
+    private static InputUtil.Key keyForMapping(KeyBinding mapping) {
+        return ((NonConflictingKeyBindingMixin) (Object) mapping).defaultKey;
     }
 }

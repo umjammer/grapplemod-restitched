@@ -3,25 +3,24 @@ package com.yyon.grapplinghook.network.serverbound;
 import com.yyon.grapplinghook.GrappleMod;
 import com.yyon.grapplinghook.network.LogicalSide;
 import com.yyon.grapplinghook.network.NetworkContext;
-import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.server.level.ServerPlayer;
-
 import java.util.function.Supplier;
+import net.minecraft.network.PacketByteBuf;
+import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.util.Identifier;
 
 public abstract class BaseMessageServer {
-	public BaseMessageServer(FriendlyByteBuf buf) {
+	public BaseMessageServer(PacketByteBuf buf) {
 		this.decode(buf);
 	}
 	
 	public BaseMessageServer() {
 	}
 	
-	public abstract void decode(FriendlyByteBuf buf);
+	public abstract void decode(PacketByteBuf buf);
 	
-	public abstract void encode(FriendlyByteBuf buf);
+	public abstract void encode(PacketByteBuf buf);
 
-    public abstract ResourceLocation getChannel();
+    public abstract Identifier getChannel();
 
     public abstract void processMessage(NetworkContext ctx);
     
@@ -35,7 +34,7 @@ public abstract class BaseMessageServer {
         
         ctx.handle();
         
-        final ServerPlayer sendingPlayer = ctx.getSender();
+        final ServerPlayerEntity sendingPlayer = ctx.getSender();
         if (sendingPlayer == null) {
         	GrappleMod.LOGGER.warn("EntityPlayerMP was null when message was received");
         }

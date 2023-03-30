@@ -2,28 +2,27 @@ package com.yyon.grapplinghook.registry;
 
 import com.yyon.grapplinghook.GrappleMod;
 import com.yyon.grapplinghook.block.modifierblock.GrappleModifierBlock;
-import net.minecraft.core.Registry;
-import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.item.BlockItem;
-import net.minecraft.world.item.Item;
-import net.minecraft.world.level.block.Block;
-
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
+import net.minecraft.block.Block;
+import net.minecraft.item.BlockItem;
+import net.minecraft.item.Item;
+import net.minecraft.registry.Registries;
+import net.minecraft.registry.Registry;
+import net.minecraft.util.Identifier;
 
 public class GrappleModBlocks {
 
-    private static HashMap<ResourceLocation, BlockEntry<?>> blocks;
+    private static HashMap<Identifier, BlockEntry<?>> blocks;
 
     static {
         GrappleModBlocks.blocks = new HashMap<>();
     }
 
     public static <B extends Block> Flow<B> block(String id, Supplier<B> block) {
-        ResourceLocation qualId = GrappleMod.id(id);
+        Identifier qualId = GrappleMod.id(id);
         BlockEntry<B> entry = new BlockEntry<>(qualId, block);
         GrappleModBlocks.blocks.put(qualId, entry);
         return new Flow<>(entry);
@@ -31,22 +30,22 @@ public class GrappleModBlocks {
 
 
     public static void registerAllBlocks() {
-        for(Map.Entry<ResourceLocation, BlockEntry<?>> def: blocks.entrySet()) {
-            ResourceLocation id = def.getKey();
+        for(Map.Entry<Identifier, BlockEntry<?>> def: blocks.entrySet()) {
+            Identifier id = def.getKey();
             BlockEntry<?> data = def.getValue();
             Block it = data.getFactory().get();
 
-            data.finalize(Registry.register(BuiltInRegistries.BLOCK, id, it));
+            data.finalize(Registry.register(Registries.BLOCK, id, it));
         }
     }
 
-    public static HashMap<ResourceLocation, BlockEntry<?>> getBlocks() {
+    public static HashMap<Identifier, BlockEntry<?>> getBlocks() {
         return new HashMap<>(GrappleModBlocks.blocks);
     }
 
     public static final BlockEntry<GrappleModifierBlock> GRAPPLE_MODIFIER = GrappleModBlocks
             .block("block_grapple_modifier", GrappleModifierBlock::new)
-            .withConfiguredItem(GrappleModItems.GRAPPLE_MODIFIER_BLOCK, new Item.Properties().stacksTo(64))
+            .withConfiguredItem(GrappleModItems.GRAPPLE_MODIFIER_BLOCK, new Item.Settings().maxCount(64))
             .define();
 
 
@@ -64,10 +63,10 @@ public class GrappleModBlocks {
         }
 
         public Flow<B> withItem(Consumer<GrappleModItems.ItemEntry<BlockItem>>  destination) {
-            return this.withConfiguredItem(destination, new Item.Properties());
+            return this.withConfiguredItem(destination, new Item.Settings());
         }
 
-        public Flow<B> withConfiguredItem(Consumer<GrappleModItems.ItemEntry<BlockItem>> destination, Item.Properties properties) {
+        public Flow<B> withConfiguredItem(Consumer<GrappleModItems.ItemEntry<BlockItem>> destination, Item.Settings properties) {
             return this.withCustomItem(destination, () -> new BlockItem(context.get(), properties));
         }
 
@@ -79,7 +78,7 @@ public class GrappleModBlocks {
     }
 
     public static class BlockEntry<B extends Block> extends AbstractRegistryReference<B> {
-        protected BlockEntry(ResourceLocation id, Supplier<B> factory) {
+        protected BlockEntry(Identifier id, Supplier<B> factory) {
             super(id, factory);
         }
     }
@@ -114,7 +113,7 @@ public class GrappleModBlocks {
         }
 
         @Override
-        public ResourceLocation getIdentifier() {
+        public Identifier getIdentifier() {
             return this.source.getIdentifier();
         }
 

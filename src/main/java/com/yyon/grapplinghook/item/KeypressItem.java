@@ -1,7 +1,7 @@
 package com.yyon.grapplinghook.item;
 
-import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.ItemStack;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.item.ItemStack;
 
 
 public interface KeypressItem {
@@ -9,6 +9,6 @@ public interface KeypressItem {
 		LAUNCHER, THROWLEFT, THROWRIGHT, THROWBOTH, ROCKET
 	}
 	
-	void onCustomKeyDown(ItemStack stack, Player player, Keys key, boolean ismainhand);
-	void onCustomKeyUp(ItemStack stack, Player player, Keys key, boolean ismainhand);
+	void onCustomKeyDown(ItemStack stack, PlayerEntity player, Keys key, boolean ismainhand);
+	void onCustomKeyUp(ItemStack stack, PlayerEntity player, Keys key, boolean ismainhand);
 }

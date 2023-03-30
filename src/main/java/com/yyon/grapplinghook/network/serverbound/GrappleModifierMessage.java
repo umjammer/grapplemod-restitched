@@ -4,11 +4,11 @@ import com.yyon.grapplinghook.GrappleMod;
 import com.yyon.grapplinghook.blockentity.GrappleModifierBlockEntity;
 import com.yyon.grapplinghook.network.NetworkContext;
 import com.yyon.grapplinghook.util.GrappleCustomization;
-import net.minecraft.core.BlockPos;
-import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.block.entity.BlockEntity;
+import net.minecraft.network.PacketByteBuf;
+import net.minecraft.util.Identifier;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.world.World;
 
 /*
     GrappleMod is free software: you can redistribute it and/or modify
@@ -30,19 +30,19 @@ public class GrappleModifierMessage extends BaseMessageServer {
     	this.custom = custom;
     }
 
-	public GrappleModifierMessage(FriendlyByteBuf buf) {
+	public GrappleModifierMessage(PacketByteBuf buf) {
 		super(buf);
 	}
 
 	@Override
-    public void decode(FriendlyByteBuf buf) {
+    public void decode(PacketByteBuf buf) {
     	this.pos = new BlockPos(buf.readInt(), buf.readInt(), buf.readInt());
     	this.custom = new GrappleCustomization();
     	this.custom.readFromBuf(buf);
     }
 
 	@Override
-    public void encode(FriendlyByteBuf buf) {
+    public void encode(PacketByteBuf buf) {
     	buf.writeInt(this.pos.getX());
     	buf.writeInt(this.pos.getY());
     	buf.writeInt(this.pos.getZ());
@@ -50,7 +50,7 @@ public class GrappleModifierMessage extends BaseMessageServer {
     }
 
 	@Override
-	public ResourceLocation getChannel() {
+	public Identifier getChannel() {
 		return GrappleMod.id("grapple_modifier");
 	}
 
@@ -58,7 +58,7 @@ public class GrappleModifierMessage extends BaseMessageServer {
     public void processMessage(NetworkContext ctx) {
 		// Block Entities must be obtained on the main thread.
 		ctx.getServer().execute(() -> {
-			Level w = ctx.getSender().getLevel();
+			World w = ctx.getSender().getWorld();
 			BlockEntity ent = w.getBlockEntity(this.pos);
 
 			if (ent instanceof GrappleModifierBlockEntity e) {
@@ -66,7 +66,7 @@ public class GrappleModifierMessage extends BaseMessageServer {
 				return;
 			}
 
-			GrappleMod.LOGGER.warn("Wrong type! is null: %s, pos: %s, isClient: %s".formatted(ent == null, this.pos, ctx.getSender().level.isClientSide));
+			GrappleMod.LOGGER.warn("Wrong type! is null: %s, pos: %s, isClient: %s".formatted(ent == null, this.pos, ctx.getSender().world.isClient));
 		});
 	}
 }
