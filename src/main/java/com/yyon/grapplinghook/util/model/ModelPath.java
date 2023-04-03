@@ -31,9 +31,13 @@ public class ModelPath {
     }
 
     public static ModelPart goTo(ModelPart root, Iterator<String> path) {
+try {
         return path.hasNext()
                 ? goTo(root.getChild(path.next()), path)
                 : root;
+} catch (NoSuchElementException e) {
+ return root;
+}
     }
 
 }
