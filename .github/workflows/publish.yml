@@ -31,4 +31,4 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.CUSTOM_GITHUB_TOKEN }}
         with:
-          files: build/libs/*-release.jar
+          files: Core/build/libs/*-release.jar
