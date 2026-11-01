@@ -1,4 +1,21 @@
-# GrappleMod: Skybound
+[![Fabric](https://img.shields.io/badge/Mod_Loader-Fabric-blue)](https://fabricmc.net/)
+[![Minecraft](https://img.shields.io/badge/Minecraft-26.3-green)](https://www.minecraft.net/)
+[![Java CI](https://github.com/umjammer/grapplemod-restitched/actions/workflows/build.yml/badge.svg)](https://github.com/umjammer/grapplemod-restitched/actions/workflows/build.yml)
+[![GitHub Release Assets](https://github.com/umjammer/grapplemod-restitched/actions/workflows/publish.yml/badge.svg)](https://github.com/umjammer/grapplemod-restitched/actions/workflows/publish.yml)
+![Java](https://img.shields.io/badge/Java-25-b07219)
+
+# GrappleMod
+
+A grappling mod for Minecraft with Fabric launcher. [Original](https://github.com/squeeglii/grapplemod-restitched)
+
+## Depends
+
+* [yacl](https://modrinth.com/mod/yacl)
+* [Mod Menu](https://modrinth.com/mod/modmenu)
+
+---
+
+# [Original]()
 
 [![GrappleMod: Skybound banner](./docs/media/grapplemod-skybound-banner.png)](https://github.com/weaversworkshop/grapplemod-skybound)
 
