@@ -7,7 +7,7 @@ import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
 
@@ -25,7 +25,7 @@ import org.jetbrains.annotations.NotNull;
  */
 public record GrappleReanchorToEntityS2CPayload(int hookId, int newEntityId, Vec3 localOffset) implements S2CPayload {
 
-    public static final ResourceLocation IDENTIFIER = GrappleMod.id("grapple_reanchor_entity");
+    public static final Identifier IDENTIFIER = GrappleMod.id("grapple_reanchor_entity");
     public static final CustomPacketPayload.Type<GrappleReanchorToEntityS2CPayload> PAYLOAD_TYPE = new Type<>(IDENTIFIER);
 
     public static final StreamCodec<RegistryFriendlyByteBuf, GrappleReanchorToEntityS2CPayload> STREAM_CODEC = StreamCodec.composite(

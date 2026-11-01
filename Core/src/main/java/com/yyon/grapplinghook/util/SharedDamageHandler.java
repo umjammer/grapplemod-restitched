@@ -18,7 +18,7 @@ public class SharedDamageHandler {
     public static void handleDeath(Entity deadEntity) {
         Level level = deadEntity.level();
 
-        if (level.isClientSide)
+        if (level.isClientSide())
             return;
 
         if(deadEntity instanceof GrapplinghookEntity)
@@ -42,7 +42,7 @@ public class SharedDamageHandler {
     public static boolean handleDamage(Entity damagedEntity, DamageSource source) {
         if (!(damagedEntity instanceof Player player)) return false;
 
-        for (ItemStack armor : player.getArmorSlots()) {
+        for (ItemStack armor : com.yyon.grapplinghook.util.GrappleModUtils.armorItems(player)) {
             if (armor != null && armor.getItem() instanceof LongFallBootsItem) continue;
             if (source.is(DamageTypes.FLY_INTO_WALL)) return true;
         }

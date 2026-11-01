@@ -3,7 +3,7 @@ package com.yyon.grapplinghook.client.api;
 import com.yyon.grapplinghook.content.entity.grapplinghook.GrapplinghookEntity;
 import net.fabricmc.fabric.api.event.Event;
 import net.fabricmc.fabric.api.event.EventFactory;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.Entity;
 
 public class GrappleModClientEvents {
@@ -41,7 +41,7 @@ public class GrappleModClientEvents {
 
     @FunctionalInterface
     public interface PhysicsApplied {
-        void onPhysicsApplied(Entity thrower, ResourceLocation physicsType);
+        void onPhysicsApplied(Entity thrower, Identifier physicsType);
     }
 
 }

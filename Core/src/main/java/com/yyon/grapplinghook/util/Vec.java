@@ -65,9 +65,9 @@ public class Vec {
 			throw new IllegalArgumentException("Expected list tag of 3 elements, got: %s".formatted(tag.size()));
 
 		try {
-			this.x = tag.getDouble(0);
-			this.y = tag.getDouble(1);
-			this.z = tag.getDouble(2);
+			this.x = tag.getDoubleOr(0, 0.0);
+			this.y = tag.getDoubleOr(1, 0.0);
+			this.z = tag.getDoubleOr(2, 0.0);
 
 		} catch (ClassCastException err) {
 			throw new IllegalArgumentException("Expected list tag with 3 doubles, threw: "+err.getMessage());

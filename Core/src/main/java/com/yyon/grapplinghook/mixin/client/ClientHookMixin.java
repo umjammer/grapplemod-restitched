@@ -37,7 +37,7 @@ public class ClientHookMixin {
         physManager.onClientTick(player);
 
         // Controls should only apply when there is no menu visible.
-        if (Minecraft.getInstance().screen != null)
+        if (Minecraft.getInstance().gui.screen() != null)
             return;
 
         // keep in same order as enum from KeypressItem
@@ -68,9 +68,10 @@ public class ClientHookMixin {
         }
     }
 
-    @Inject(method = "disconnect(Lnet/minecraft/client/gui/screens/Screen;Z)V",
+    // The 2-arg overload now just delegates; the teardown lives in disconnect(Screen, boolean, boolean).
+    @Inject(method = "disconnect(Lnet/minecraft/client/gui/screens/Screen;ZZ)V",
             at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/GameRenderer;resetData()V"))
-    public void handleLogOut(Screen nextScreen, boolean keepResourcePacks, CallbackInfo ci) {
+    public void handleLogOut(Screen nextScreen, boolean keepResourcePacks, boolean stopSound, CallbackInfo ci) {
         GrappleModCommonConfig.resetConfigFromServer();
         GrappleModClient.get().getClientControllerManager().resetForDisconnect();
         ClientNetworkReceivers.clearDeferred();

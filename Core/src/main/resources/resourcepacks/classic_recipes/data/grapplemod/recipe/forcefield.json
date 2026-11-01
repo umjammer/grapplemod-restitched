@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "pattern": [
+    " 2 ",
+    "242",
+    " 2 "
+  ],
+  "key": {
+    "2": "minecraft:iron_ingot",
+    "4": "minecraft:compass"
+  },
+  "result": {
+    "id": "grapplemod:forcefield"
+  }
+}

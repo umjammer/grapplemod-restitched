@@ -335,7 +335,7 @@ public void removeSegment(int index) {
 	}
 
 	public Vec getNormal(Direction facing) {
-		Vec3i facingvec = facing.getNormal();
+		Vec3i facingvec = facing.getUnitVec3i();
 		return new Vec(facingvec.getX(), facingvec.getY(), facingvec.getZ());
 	}
 
@@ -353,7 +353,7 @@ public void removeSegment(int index) {
 		if (this.bends.size() < 2) {
 			GrappleMod.LOGGER.warn("[Grapple] getClosest called with bends.size()={}; segment handler invariant violated. side={} hookId={}",
 					this.bends.size(),
-					this.world != null && this.world.isClientSide ? "CLIENT" : "SERVER",
+					this.world != null && this.world.isClientSide() ? "CLIENT" : "SERVER",
 					this.hookEntity != null ? this.hookEntity.getId() : -1,
 					new Throwable("getClosest size<2 trace"));
 			return this.bends.isEmpty() ? hookpos : this.bends.get(0).worldPos;

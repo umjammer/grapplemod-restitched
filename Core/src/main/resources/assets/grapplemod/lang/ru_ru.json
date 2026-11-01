@@ -2,6 +2,8 @@
     "itemGroup.grapplemod.main": "Grappling Hook Mod",
 
     "key.grapplemod.category": "Grappling Hook Mod",
+
+    "key.category.grapplemod.category": "Grappling Hook Mod",
     "key.motoronoff.desc": "Мотор вкл/выкл",
     "key.jumpanddetach.desc": "Прыгнуть и отделить",
     "key.slow.desc": "Замедлиться / Остановить раскачивание",

@@ -28,7 +28,7 @@ public abstract class LocalPlayerUpdatesMixin {
         if(level == null) return;
 
         if(gameMode == GameType.SPECTATOR){
-            UUID profile = this.getProfile().getId();
+            UUID profile = this.getProfile().id();
             Player p = level.getPlayerByUUID(profile);
 
             if(p == null) return;

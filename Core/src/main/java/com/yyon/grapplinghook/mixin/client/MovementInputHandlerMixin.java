@@ -6,9 +6,11 @@ import com.yyon.grapplinghook.client.physics.controller.AirFrictionPhysicsContro
 import com.yyon.grapplinghook.client.physics.controller.ForcefieldPhysicsController;
 import com.yyon.grapplinghook.client.physics.controller.GrapplingHookPhysicsController;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.player.Input;
+import net.minecraft.client.player.ClientInput;
 import net.minecraft.client.player.LocalPlayer;
+import net.minecraft.world.entity.player.Input;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.phys.Vec2;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
@@ -19,9 +21,9 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 public class MovementInputHandlerMixin {
 
     @Shadow
-    public Input input;
+    public ClientInput input;
 
-    @Inject(method = "aiStep()V", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/player/Input;tick(ZF)V", shift = At.Shift.AFTER))
+    @Inject(method = "aiStep()V", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/player/ClientInput;tick()V", shift = At.Shift.AFTER))
     public void inputHandle(CallbackInfo ci) {
         Player player = Minecraft.getInstance().player;
         if (!Minecraft.getInstance().isRunning() || player == null) return;
@@ -32,9 +34,10 @@ public class MovementInputHandlerMixin {
         if (!physManager.controllers.containsKey(id))
             return;
 
-        Input input = this.input;
+        ClientInput input = this.input;
         GrapplingHookPhysicsController control = physManager.controllers.get(id);
-        control.receivePlayerMovementMessage(input.leftImpulse, input.forwardImpulse, input.shiftKeyDown);
+        Vec2 move = input.getMoveVector();
+        control.receivePlayerMovementMessage(move.x, move.y, input.keyPresses.shift());
 
         boolean overrideMovement = true;
         if (player.onGround()) {
@@ -44,14 +47,10 @@ public class MovementInputHandlerMixin {
         }
 
         if (overrideMovement) {
-            //input.jumping = false;
-            input.down = false;
-            input.up = false;
-            input.left = false;
-            input.right = false;
-            input.forwardImpulse = 0;
-            input.leftImpulse = 0;
-			//input.sneak = false; // fix alternate throw angles
+            // jump and shift are left alone (shift drives alternate throw angles)
+            Input keys = input.keyPresses;
+            input.keyPresses = new Input(false, false, false, false, keys.jump(), keys.shift(), keys.sprint());
+            ((ClientInputAccessor) input).grapplemod$setMoveVector(Vec2.ZERO);
         }
     }
 }

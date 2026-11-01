@@ -10,7 +10,7 @@ import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
 import org.joml.Vector3f;
@@ -123,13 +123,13 @@ public record GrappleAttachS2CPayload(int hookId, Vector3f hookPos, int holderId
         }
     }
 
-    public static final ResourceLocation IDENTIFIER = GrappleMod.id("grapple_attach");
+    public static final Identifier IDENTIFIER = GrappleMod.id("grapple_attach");
     public static final CustomPacketPayload.Type<GrappleAttachS2CPayload> PAYLOAD_TYPE = new Type<>(IDENTIFIER);
 
     public static final StreamCodec<RegistryFriendlyByteBuf, GrappleAttachS2CPayload> STREAM_CODEC = StreamCodec.composite(
             ByteBufCodecs.INT,
             GrappleAttachS2CPayload::hookId,
-            ByteBufCodecs.VECTOR3F,
+            ByteBufCodecs.VECTOR3F.map(Vector3f::new, v -> v),
             GrappleAttachS2CPayload::hookPos,
             ByteBufCodecs.INT,
             GrappleAttachS2CPayload::holderId,

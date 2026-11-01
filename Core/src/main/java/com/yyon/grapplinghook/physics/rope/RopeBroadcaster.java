@@ -14,7 +14,7 @@ final class RopeBroadcaster {
     private RopeBroadcaster() {}
 
     static void broadcastAdd(GrapplinghookEntity hook, Level world, int index, RopeBend bend) {
-        if (world.isClientSide) return;
+        if (world.isClientSide()) return;
         RopeSegmentUpdateS2CPayload msg = new RopeSegmentUpdateS2CPayload(
                 hook.getId(), true, index,
                 bend.worldPos,
@@ -25,7 +25,7 @@ final class RopeBroadcaster {
     }
 
     static void broadcastRemove(GrapplinghookEntity hook, Level world, int index) {
-        if (world.isClientSide) return;
+        if (world.isClientSide()) return;
         RopeSegmentUpdateS2CPayload msg = new RopeSegmentUpdateS2CPayload(
                 hook.getId(), false, index,
                 new Vec(0, 0, 0), NullableDirection.DOWN, NullableDirection.DOWN,

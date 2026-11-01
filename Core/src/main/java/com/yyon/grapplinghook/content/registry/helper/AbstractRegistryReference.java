@@ -1,17 +1,17 @@
 package com.yyon.grapplinghook.content.registry.helper;
 
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 import java.util.function.Supplier;
 
 public abstract class AbstractRegistryReference<T> {
 
-    private final ResourceLocation id;
+    private final Identifier id;
     private final Supplier<T> factory;
 
     private T entry;
 
-    protected AbstractRegistryReference(ResourceLocation id, Supplier<T> factory) {
+    protected AbstractRegistryReference(Identifier id, Supplier<T> factory) {
         this.id = id;
         this.factory = factory;
 
@@ -36,7 +36,7 @@ public abstract class AbstractRegistryReference<T> {
     }
 
 
-    public ResourceLocation getIdentifier() {
+    public Identifier getIdentifier() {
         return this.id;
     }
 

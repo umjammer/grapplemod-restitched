@@ -1,7 +1,7 @@
 package com.yyon.grapplinghook.client.gui.view;
 
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.AbstractContainerWidget;
 import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.components.events.GuiEventListener;
@@ -53,8 +53,13 @@ public class ScrollableViewHolder<T extends SwitchableScreenView> extends Abstra
     }
 
     @Override
-    protected void renderWidget(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
+    protected void extractWidgetRenderState(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTick) {
 
+    }
+
+    @Override
+    protected int contentHeight() {
+        return this.currentContentsHeight;
     }
 
     @Override

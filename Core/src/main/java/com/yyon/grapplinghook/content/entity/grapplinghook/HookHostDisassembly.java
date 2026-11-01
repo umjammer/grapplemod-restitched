@@ -33,7 +33,7 @@ public final class HookHostDisassembly {
             Function<A, BlockPos> localBlockOf,
             Function<Vec3, Vec3> localCenterToWorld,
             String logTag) {
-        if (level.isClientSide) return;
+        if (level.isClientSide()) return;
 
         for (GrapplinghookEntity hook : ServerHookEntityTracker.getAllTrackedHooks()) {
             try {

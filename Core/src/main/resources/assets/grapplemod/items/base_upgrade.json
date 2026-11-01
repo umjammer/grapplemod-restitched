@@ -1,0 +1,6 @@
+{
+  "model": {
+    "type": "minecraft:model",
+    "model": "grapplemod:item/base_upgrade"
+  }
+}

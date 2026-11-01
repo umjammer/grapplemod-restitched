@@ -1,18 +1,19 @@
 package com.yyon.grapplinghook.client;
 
 import com.yyon.grapplinghook.GrappleMod;
+import com.yyon.grapplinghook.client.debug.GrappleModDebugEntry;
+import com.yyon.grapplinghook.client.item.GrappleItemStateProperty;
+import net.minecraft.client.gui.components.debug.DebugScreenEntries;
 import com.yyon.grapplinghook.client.network.ClientNetworkReceivers;
 import com.yyon.grapplinghook.client.physics.ClientPhysicsControllerTracker;
-import com.yyon.grapplinghook.client.physics.controller.AirFrictionPhysicsController;
-import com.yyon.grapplinghook.client.physics.controller.ForcefieldPhysicsController;
 import com.yyon.grapplinghook.client.render.entity.GrapplinghookEntityRenderer;
+import com.yyon.grapplinghook.client.render.entity.GrapplinghookRenderState;
 import com.yyon.grapplinghook.config.GrappleModClientConfig;
 import com.yyon.grapplinghook.content.entity.grapplinghook.GrapplinghookEntity;
 import com.yyon.grapplinghook.content.registry.internal.ModEntities;
 import com.yyon.grapplinghook.content.registry.internal.ModEntityLayerIdentifiers;
 import com.yyon.grapplinghook.content.registry.internal.ModItems;
 import com.yyon.grapplinghook.content.customization.data.HookCustomization;
-import com.yyon.grapplinghook.content.customization.type.BooleanProperty;
 import com.yyon.grapplinghook.content.registry.internal.ModMenuScreens;
 import com.yyon.grapplinghook.util.GrappleModUtils;
 import net.fabricmc.api.ClientModInitializer;
@@ -26,22 +27,18 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.client.renderer.entity.EntityRenderer;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
-import net.minecraft.client.renderer.item.ItemProperties;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.client.resources.sounds.SoundInstance;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Optional;
-
-import static com.yyon.grapplinghook.content.registry.CustomizationProperties.*;
 
 @Environment(EnvType.CLIENT)
 public class GrappleModClient implements ClientModInitializer {
@@ -68,6 +65,7 @@ public class GrappleModClient implements ClientModInitializer {
         ModKeys.registerAll();
         ModEntityLayerIdentifiers.registerAll();
         ModMenuScreens.registerAll();
+        DebugScreenEntries.register(GrappleMod.id("physics"), new GrappleModDebugEntry());
 
         this.clientPhysicsControllerTracker = new ClientPhysicsControllerTracker();
         this.registerPropertyOverride();
@@ -84,20 +82,8 @@ public class GrappleModClient implements ClientModInitializer {
     }
 
     public void registerPropertyOverride() {
-        ItemProperties.register(ModItems.GRAPPLING_HOOK.get(), GrappleMod.vanillaId("rocket"), (stack, world, entity, seed) -> propertyEquipOverride(stack, ROCKET_ATTACHED.get()));
-        ItemProperties.register(ModItems.GRAPPLING_HOOK.get(), GrappleMod.vanillaId("double"), (stack, world, entity, seed) -> propertyEquipOverride(stack, DOUBLE_HOOK_ATTACHED.get()));
-        ItemProperties.register(ModItems.GRAPPLING_HOOK.get(), GrappleMod.vanillaId("motor"), (stack, world, entity, seed) -> propertyEquipOverride(stack, MOTOR_ATTACHED.get()));
-        ItemProperties.register(ModItems.GRAPPLING_HOOK.get(), GrappleMod.vanillaId("enderstaff"), (stack, world, entity, seed) -> propertyEquipOverride(stack, ENDER_STAFF_ATTACHED.get()));
-        ItemProperties.register(ModItems.GRAPPLING_HOOK.get(), GrappleMod.vanillaId("magnet"), (stack, world, entity, seed) -> propertyEquipOverride(stack, MAGNET_ATTACHED.get()));
-        ItemProperties.register(ModItems.GRAPPLING_HOOK.get(), GrappleMod.vanillaId("attached"), (stack, world, entity, seed) -> {
-            if (entity == null) return 0;
-            return (this.getClientControllerManager().controllers.containsKey(entity.getId()) && !(this.getClientControllerManager().controllers.get(entity.getId()) instanceof AirFrictionPhysicsController)) ? 1 : 0;
-        });
-        ItemProperties.register(ModItems.FORCE_FIELD.get(), GrappleMod.vanillaId("attached"), (stack, world, entity, seed) -> {
-            if (entity == null) return 0;
-            return (this.getClientControllerManager().controllers.containsKey(entity.getId()) && this.getClientControllerManager().controllers.get(entity.getId()) instanceof ForcefieldPhysicsController) ? 1 : 0;
-        });
-        ItemProperties.register(ModItems.GRAPPLING_HOOK.get(), GrappleMod.vanillaId("hook"), (stack, world, entity, seed) -> ModItems.GRAPPLING_HOOK.get().shouldDisplayAsHookOnly(stack) ? 1 : 0);
+        // Item model predicates are now data-driven: see assets/grapplemod/items/*.json
+        GrappleItemStateProperty.register();
     }
 
     public void registerResourcePacks() {
@@ -150,7 +136,7 @@ public class GrappleModClient implements ClientModInitializer {
         return false;
     }
 
-    public void playSound(ResourceLocation loc, float volume) {
+    public void playSound(Identifier loc, float volume) {
         Player player = Minecraft.getInstance().player;
         if(player == null) return;
 
@@ -167,12 +153,6 @@ public class GrappleModClient implements ClientModInitializer {
                 .play(sound);
     }
 
-    private static int propertyEquipOverride(ItemStack stack, BooleanProperty property) {
-        HookCustomization volume = ModItems.GRAPPLING_HOOK.get().getCustomizationsOrDefault(stack);
-        return volume.get(property) ? 1 : 0;
-    }
-
-
     public ClientPhysicsControllerTracker getClientControllerManager() {
         return this.clientPhysicsControllerTracker;
     }
@@ -181,7 +161,7 @@ public class GrappleModClient implements ClientModInitializer {
 
         @Override
         @NotNull
-        public EntityRenderer<GrapplinghookEntity> create(Context manager) {
+        public EntityRenderer<GrapplinghookEntity, GrapplinghookRenderState> create(Context manager) {
             return new GrapplinghookEntityRenderer<>(manager, ModItems.GRAPPLING_HOOK.get());
         }
 

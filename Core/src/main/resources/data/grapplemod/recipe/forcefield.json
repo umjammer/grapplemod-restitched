@@ -1,23 +1,17 @@
 {
-	"type": "minecraft:crafting_shaped",
-	"category": "equipment",
-	"pattern": [
-		"aia",
-		"aca",
-		"aia"
-	],
-	"key": {
-		"i": {
-			"item": "minecraft:iron_ingot"
-		}, 
-		"a": {
-			"item": "minecraft:amethyst_shard"
-		},
-		"c": {
-			"item": "minecraft:recovery_compass"
-		}
-	},
-	"result": {
-		"id": "grapplemod:forcefield"
-	}
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "pattern": [
+    "aia",
+    "aca",
+    "aia"
+  ],
+  "key": {
+    "i": "minecraft:iron_ingot",
+    "a": "minecraft:amethyst_shard",
+    "c": "minecraft:recovery_compass"
+  },
+  "result": {
+    "id": "grapplemod:forcefield"
+  }
 }

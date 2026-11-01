@@ -1,5 +1,7 @@
 package com.yyon.grapplinghook.content.item;
 
+import java.util.function.Consumer;
+import net.minecraft.world.item.component.TooltipDisplay;
 import com.yyon.grapplinghook.client.GrappleModClient;
 import com.yyon.grapplinghook.util.TextUtils;
 import net.fabricmc.api.EnvType;
@@ -9,7 +11,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.Options;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.InteractionHand;
-import net.minecraft.world.InteractionResultHolder;
+import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -38,39 +40,39 @@ import java.util.List;
 
 public class EnderStaffItem extends Item {
 	
-	public EnderStaffItem() {
-		super(new Item.Properties().stacksTo(1));
+	public EnderStaffItem(Item.Properties properties) {
+		super(properties.stacksTo(1));
 	}
 
 	
     @Override
 	@NotNull
-    public InteractionResultHolder<ItemStack> use(Level worldIn, Player playerIn, InteractionHand hand) {
+    public InteractionResult use(Level worldIn, Player playerIn, InteractionHand hand) {
     	ItemStack stack = playerIn.getItemInHand(hand);
 
-		if (!worldIn.isClientSide)
-			return InteractionResultHolder.consume(stack);
+		if (!worldIn.isClientSide())
+			return InteractionResult.CONSUME;
 
 		GrappleModClient.get().launchPlayer(playerIn);
 
-    	return InteractionResultHolder.success(stack);
+    	return InteractionResult.SUCCESS;
 	}
     
 	@Override
 	@Environment(EnvType.CLIENT)
-	public void appendHoverText(ItemStack stack, TooltipContext context, List<Component> tooltipComponents, TooltipFlag tooltipFlag) {
+	public void appendHoverText(ItemStack stack, TooltipContext context, TooltipDisplay display, Consumer<Component> tooltipComponents, TooltipFlag tooltipFlag) {
 		Options options = Minecraft.getInstance().options;
 
-		tooltipComponents.add(Component
+		tooltipComponents.accept(Component
 				.translatable("grappletooltip.launcheritem.desc")
 				.withStyle(ChatFormatting.DARK_GRAY, ChatFormatting.ITALIC));
-		tooltipComponents.add(Component.literal(""));
+		tooltipComponents.accept(Component.literal(""));
 
 
-		tooltipComponents.add(Component
+		tooltipComponents.accept(Component
 				.translatable("grappletooltip.controls.title")
 				.withStyle(ChatFormatting.GRAY, ChatFormatting.BOLD, ChatFormatting.UNDERLINE)
 		);
-		tooltipComponents.add(TextUtils.keybinding("grappletooltip.launcheritemcontrols.desc", options.keyUse));
+		tooltipComponents.accept(TextUtils.keybinding("grappletooltip.launcheritemcontrols.desc", options.keyUse));
 	}
 }

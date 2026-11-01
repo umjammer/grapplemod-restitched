@@ -1,5 +1,7 @@
 package com.yyon.grapplinghook.content.item;
 
+import java.util.function.Consumer;
+import net.minecraft.world.item.component.TooltipDisplay;
 import com.yyon.grapplinghook.api.GrappleModServerEvents;
 import com.yyon.grapplinghook.client.GrappleModClient;
 import com.yyon.grapplinghook.client.ModKeys;
@@ -72,9 +74,10 @@ public class GrapplehookItem extends Item implements IGlobalKeyObserver, IDropHa
 
 	//todo: left/right hand --> main & off hand.
 
-	public GrapplehookItem() {
+	public GrapplehookItem(Properties properties) {
 		super(
-				new Properties()
+				properties
+						.repairable(Items.LEATHER)
 						.stacksTo(1)
 						.durability(DURABILITY)
 						.component(ModDataComponents.CUSTOMIZABLE, new HookCustomization())
@@ -83,14 +86,7 @@ public class GrapplehookItem extends Item implements IGlobalKeyObserver, IDropHa
 
 
 	@Override
-	public boolean isValidRepairItem(ItemStack stack, ItemStack repair) {
-        if (repair != null && repair.getItem().equals(Items.LEATHER)) return true;
-        return super.isValidRepairItem(stack, repair);
-	}
-
-	@Override
-	public boolean hurtEnemy(ItemStack stack, LivingEntity target, LivingEntity attacker) {
-		return true;
+	public void hurtEnemy(ItemStack stack, LivingEntity target, LivingEntity attacker) {
 	}
 
 	// previously: onBlockStartBreak
@@ -100,13 +96,13 @@ public class GrapplehookItem extends Item implements IGlobalKeyObserver, IDropHa
 	}
 
 	@Override
-	public boolean canAttackBlock(BlockState p_195938_1_, Level p_195938_2_, BlockPos p_195938_3_, Player p_195938_4_) {
+	public boolean canDestroyBlock(ItemStack stack, BlockState state, Level level, BlockPos pos, LivingEntity user) {
 		return false;
 	}
 
 	@Override
 	public void onCustomKeyDown(ItemStack stack, Player player, Keys key, boolean isMainHand) {
-		if (player.level().isClientSide) {
+		if (player.level().isClientSide()) {
 			if (key == Keys.LAUNCHER) {
 				if (this.getCustomizationsOrDefault(stack).get(ENDER_STAFF_ATTACHED.get()))
 					GrappleModClient.get().launchPlayer(player);
@@ -160,7 +156,7 @@ public class GrapplehookItem extends Item implements IGlobalKeyObserver, IDropHa
 	
 	@Override
 	public void onCustomKeyUp(ItemStack stack, Player player, Keys key, boolean isMainHand) {
-		if (player.level().isClientSide) {
+		if (player.level().isClientSide()) {
 			if (key == Keys.THROW_OFF_HAND || key == Keys.THROW_MAIN_HAND || key == Keys.THROW_BOTH_HOOKS) {
 				NetworkManager.packetToServer(new KeypressC2SPayload(key, false));
 			}
@@ -211,8 +207,10 @@ public class GrapplehookItem extends Item implements IGlobalKeyObserver, IDropHa
 
 	@Override
 	@Environment(EnvType.CLIENT)
-	public void appendHoverText(ItemStack stack, TooltipContext context, List<Component> tooltipComponents, TooltipFlag tooltipFlag) {
-		HookTooltipFormatter.format(stack, this.getCustomizationsOrDefault(stack), tooltipComponents);
+	public void appendHoverText(ItemStack stack, TooltipContext context, TooltipDisplay display, Consumer<Component> tooltipComponents, TooltipFlag tooltipFlag) {
+		List<Component> lines = new java.util.ArrayList<>();
+		HookTooltipFormatter.format(stack, this.getCustomizationsOrDefault(stack), lines);
+		lines.forEach(tooltipComponents);
 	}
 
 	@NotNull
@@ -280,7 +278,7 @@ public class GrapplehookItem extends Item implements IGlobalKeyObserver, IDropHa
 
 		this.throwMainHand(stack, worldIn, entityLiving, shouldThrowBothHands);
 
-		entityLiving.level().playSound(null, entityLiving.position().x, entityLiving.position().y, entityLiving.position().z, SoundEvents.ARROW_SHOOT, SoundSource.NEUTRAL, 1.0F, 1.0F / (worldIn.random.nextFloat() * 0.4F + 1.2F) + 2.0F * 0.5F);
+		entityLiving.level().playSound(null, entityLiving.position().x, entityLiving.position().y, entityLiving.position().z, SoundEvents.ARROW_SHOOT, SoundSource.NEUTRAL, 1.0F, 1.0F / (worldIn.getRandom().nextFloat() * 0.4F + 1.2F) + 2.0F * 0.5F);
 	}
 
 	public boolean throwOffHand(ItemStack stack, Level worldIn, Player entityLiving, boolean isDoublePair) {
@@ -389,7 +387,7 @@ public class GrapplehookItem extends Item implements IGlobalKeyObserver, IDropHa
 	private void tryFlingAttachedEntity(LivingEntity thrower, GrapplinghookEntity hook) {
 		if (hook == null) return;
 		if (!thrower.isCrouching()) return;
-		if (thrower.level().isClientSide) return;
+		if (thrower.level().isClientSide()) return;
 
 		Entity attached = hook.attachedWorldEntity();
 		if (!(attached instanceof LivingEntity mob)) return;
@@ -410,7 +408,7 @@ public class GrapplehookItem extends Item implements IGlobalKeyObserver, IDropHa
 		Vec3 velocity = biasedDir.scale(magnitude);
 
 		mob.setDeltaMovement(velocity);
-		mob.hurtMarked = true;
+		mob.syncVelocity = true;
 	}
 
 	public GrapplinghookEntity createGrapplehookEntity(ItemStack stack, Level worldIn, LivingEntity entityLiving, boolean isMainHand, boolean isDoublePair) {

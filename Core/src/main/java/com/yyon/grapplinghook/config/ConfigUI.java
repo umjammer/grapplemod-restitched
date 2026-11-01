@@ -9,7 +9,7 @@ import dev.isxander.yacl3.api.controller.*;
 import dev.isxander.yacl3.config.v2.api.ConfigClassHandler;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 import java.awt.*;
 import java.lang.reflect.Field;
@@ -138,7 +138,7 @@ public class ConfigUI {
         // IncludeImage present
         if(imageNotation.length > 0) {
             IncludeImage imageAnnotation = imageNotation[0];
-            ResourceLocation checkedPath = GrappleMod.id(imageAnnotation.value());
+            Identifier checkedPath = GrappleMod.id(imageAnnotation.value());
             int width = imageAnnotation.width();
             int height = imageAnnotation.height();
             desc.image(checkedPath, width, height);
@@ -146,7 +146,7 @@ public class ConfigUI {
 
         if(animatedImageNotation.length > 0) {
             IncludeAnimatedImage imageAnnotation = animatedImageNotation[0];
-            ResourceLocation checkedPath = GrappleMod.id(imageAnnotation.value());
+            Identifier checkedPath = GrappleMod.id(imageAnnotation.value());
             desc.webpImage(checkedPath);
         }
 

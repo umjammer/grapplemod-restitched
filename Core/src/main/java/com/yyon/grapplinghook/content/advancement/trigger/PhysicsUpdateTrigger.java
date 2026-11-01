@@ -5,9 +5,9 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
 import com.yyon.grapplinghook.GrappleMod;
 import com.yyon.grapplinghook.content.advancement.PhysicsFramePredicate;
 import com.yyon.grapplinghook.physics.PlayerPhysicsFrame;
-import net.minecraft.advancements.critereon.ContextAwarePredicate;
-import net.minecraft.advancements.critereon.EntityPredicate;
-import net.minecraft.advancements.critereon.SimpleCriterionTrigger;
+import net.minecraft.core.Holder;
+import net.minecraft.world.level.storage.loot.predicates.LootItemCondition;
+import net.minecraft.advancements.triggers.SimpleCriterionTrigger;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.ExtraCodecs;
 import net.minecraft.world.entity.player.Player;
@@ -36,11 +36,11 @@ public class PhysicsUpdateTrigger extends SimpleCriterionTrigger<PhysicsUpdateTr
     }
 
 
-    public record TriggerInstance(Optional<ContextAwarePredicate> player, Optional<PhysicsFramePredicate> physics) implements SimpleInstance {
+    public record TriggerInstance(Optional<Holder<LootItemCondition>> player, Optional<PhysicsFramePredicate> physics) implements SimpleInstance {
 
         public static final Codec<PhysicsUpdateTrigger.TriggerInstance> CODEC = RecordCodecBuilder.create((instance) -> instance
                 .group(
-                        EntityPredicate.ADVANCEMENT_CODEC.optionalFieldOf("player").forGetter(TriggerInstance::player),
+                        LootItemCondition.CODEC.optionalFieldOf("player").forGetter(TriggerInstance::player),
                         PhysicsFramePredicate.CODEC.optionalFieldOf(PHYSICS_PREDICATE_ID).forGetter(TriggerInstance::physics)
                 )
                 .apply(instance, TriggerInstance::new));

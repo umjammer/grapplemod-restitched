@@ -24,7 +24,7 @@ import net.minecraft.client.multiplayer.PlayerInfo;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.client.server.IntegratedServer;
 import net.minecraft.core.BlockPos;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.Mth;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
@@ -135,7 +135,7 @@ private boolean rocketKeyDown = false;
 		}
 	}
 
-	public ResourceLocation getType() {
+	public Identifier getType() {
 		return PhysicsControllers.GRAPPLING_HOOK;
 	}
 
@@ -699,7 +699,7 @@ private boolean rocketKeyDown = false;
 	}
 
 	protected double getSlownessFactor() {
-		MobEffectInstance effect = this.holder == null ? null : this.holder.getEffect(MobEffects.MOVEMENT_SLOWDOWN);
+		MobEffectInstance effect = this.holder == null ? null : this.holder.getEffect(MobEffects.SLOWNESS);
 		if (effect == null) return 1.0;
 		return Math.max(0.0, 1.0 - 0.15 * (effect.getAmplifier() + 1));
 	}

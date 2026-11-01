@@ -11,7 +11,7 @@ import com.yyon.grapplinghook.content.customization.display.AbstractPropertyDisp
 import io.netty.buffer.ByteBuf;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 import java.util.Map;
 
@@ -91,7 +91,7 @@ public abstract class CustomizationProperty<T> {
         return this.status;
     }
 
-    public final ResourceLocation getIdentifier() {
+    public final Identifier getIdentifier() {
         return GrappleModRegistries.CUSTOMIZATION_PROPERTIES.getKey(this);
     }
 
@@ -114,14 +114,14 @@ public abstract class CustomizationProperty<T> {
     }
 
     public Component getDisplayName() {
-        ResourceLocation id = this.getIdentifier();
+        Identifier id = this.getIdentifier();
         return id == null
                 ? Component.translatable("grapple_property.invalid").withStyle(ChatFormatting.RED)
                 : Component.translatable(this.getLocalization());
     }
 
     public Component getDescription() {
-        ResourceLocation id = this.getIdentifier();
+        Identifier id = this.getIdentifier();
         return id == null
                 ? Component.translatable("grapple_property.invalid.desc")
                 : Component.translatable(this.getLocalization("desc"));
@@ -129,7 +129,7 @@ public abstract class CustomizationProperty<T> {
 
     @Override
     public int hashCode() {
-        ResourceLocation identifier = this.getIdentifier();
+        Identifier identifier = this.getIdentifier();
         int result = identifier != null
                 ? identifier.hashCode()
                 : 0;

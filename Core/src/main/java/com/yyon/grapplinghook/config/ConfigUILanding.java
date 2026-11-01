@@ -29,7 +29,7 @@ public class ConfigUILanding extends Screen {
                 ConfigUtil.COMMON_CONFIG_TRANSLATION,
                 button -> {
                     Screen configScreen = ConfigUI.buildCommonConfig().generateScreen(this);
-                    this.minecraft.setScreen(configScreen);
+                    this.minecraft.gui.setScreen(configScreen);
                 }
         ).build();
 
@@ -37,7 +37,7 @@ public class ConfigUILanding extends Screen {
                 ConfigUtil.CLIENT_CONFIG_TRANSLATION,
                 button -> {
                     Screen configScreen = ConfigUI.buildClientConfig().generateScreen(this);
-                    this.minecraft.setScreen(configScreen);
+                    this.minecraft.gui.setScreen(configScreen);
                 }
         ).build();
 
@@ -60,6 +60,6 @@ public class ConfigUILanding extends Screen {
 
     @Override
     public void onClose() {
-        this.minecraft.setScreen(this.lastScreen);
+        this.minecraft.gui.setScreen(this.lastScreen);
     }
 }

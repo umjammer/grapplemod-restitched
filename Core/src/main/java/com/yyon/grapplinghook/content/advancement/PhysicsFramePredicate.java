@@ -3,19 +3,19 @@ package com.yyon.grapplinghook.content.advancement;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import com.yyon.grapplinghook.physics.PlayerPhysicsFrame;
-import net.minecraft.advancements.critereon.MinMaxBounds;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.advancements.predicates.MinMaxBounds;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.ExtraCodecs;
 
 import java.util.List;
 import java.util.Optional;
 
-public record PhysicsFramePredicate(Optional<List<ResourceLocation>> controllerTypes, Optional<MinMaxBounds.Doubles> speed, Optional<Boolean> isUsingRocket) {
+public record PhysicsFramePredicate(Optional<List<Identifier>> controllerTypes, Optional<MinMaxBounds.Doubles> speed, Optional<Boolean> isUsingRocket) {
 
     public static final Codec<PhysicsFramePredicate> CODEC = RecordCodecBuilder.create((instance) ->
             instance
                 .group(
-                        Codec.list(ResourceLocation.CODEC).optionalFieldOf("controller_types").forGetter(PhysicsFramePredicate::controllerTypes),
+                        Codec.list(Identifier.CODEC).optionalFieldOf("controller_types").forGetter(PhysicsFramePredicate::controllerTypes),
                         MinMaxBounds.Doubles.CODEC.optionalFieldOf("speed").forGetter(PhysicsFramePredicate::speed),
                         Codec.BOOL.optionalFieldOf("is_using_rocket").forGetter(PhysicsFramePredicate::isUsingRocket)
 
@@ -32,7 +32,7 @@ public record PhysicsFramePredicate(Optional<List<ResourceLocation>> controllerT
 
     public boolean matches(PlayerPhysicsFrame frame) {
         if(this.controllerTypes.isPresent()) {
-            ResourceLocation frameType = frame.getPhysicsControllerType();
+            Identifier frameType = frame.getPhysicsControllerType();
 
             if (!this.controllerTypes.get().contains(frameType))
                 return false;

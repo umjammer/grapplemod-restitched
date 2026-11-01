@@ -1,6 +1,6 @@
 package com.yyon.grapplinghook.client.gui.view;
 
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.components.ContainerObjectSelectionList;
 import net.minecraft.client.gui.narration.NarratableEntry;
@@ -31,7 +31,7 @@ public abstract class SwitchableScreenView extends ContainerObjectSelectionList.
     public abstract void destroy(List<AbstractWidget> widgets);
 
     @Override
-    public void render(GuiGraphics guiGraphics, int index, int top, int left, int width, int height, int mouseX, int mouseY, boolean hovering, float partialTick) {
+    public void extractContent(GuiGraphicsExtractor graphics, int mouseX, int mouseY, boolean hovering, float partialTick) {
 
     }
 

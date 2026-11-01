@@ -15,7 +15,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.Options;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
 
 import java.util.HashMap;
@@ -49,7 +49,7 @@ final class HookTooltipFormatter {
             tooltipComponents.add(Component.literal(" "));
         }
 
-        if (Screen.hasShiftDown() && !hasDelta) {
+        if (net.minecraft.client.Minecraft.getInstance().hasShiftDown() && !hasDelta) {
             appendControls(custom, tooltipComponents, options);
             return;
         }
@@ -58,7 +58,7 @@ final class HookTooltipFormatter {
         // property: value
         // property: [/]
         //...
-        if (Screen.hasControlDown() && !hasDelta) {
+        if (net.minecraft.client.Minecraft.getInstance().hasControlDown() && !hasDelta) {
             appendPropertiesList(custom, tooltipComponents);
             return;
         }
@@ -201,7 +201,7 @@ final class HookTooltipFormatter {
     }
 
     private static void appendAttachmentsList(HookCustomization custom, List<Component> tooltipComponents) {
-        HashMap<ResourceLocation, Component> attachmentTexts = new HashMap<>();
+        HashMap<Identifier, Component> attachmentTexts = new HashMap<>();
 
         custom.getPropertiesPresent().stream()
                 .filter(p -> p instanceof AttachmentProperty)

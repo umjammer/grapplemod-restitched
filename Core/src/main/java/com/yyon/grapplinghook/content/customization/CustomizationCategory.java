@@ -8,7 +8,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.HoverEvent;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.network.chat.Style;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -41,7 +41,7 @@ public class CustomizationCategory {
         );
     }
 
-    public ResourceLocation getIdentifier() {
+    public Identifier getIdentifier() {
         return GrappleModRegistries.CUSTOMIZATION_CATEGORIES.getKey(this);
     }
 
@@ -63,7 +63,7 @@ public class CustomizationCategory {
     public MutableComponent getEmbed() {
         Component hoverText = this.getEmbedContent();
 
-        HoverEvent hoverEvent = new HoverEvent(HoverEvent.Action.SHOW_TEXT, hoverText);
+        HoverEvent hoverEvent = new HoverEvent.ShowText(hoverText);
 
         MutableComponent base = this.getName().copy();
         Style style = Style.EMPTY

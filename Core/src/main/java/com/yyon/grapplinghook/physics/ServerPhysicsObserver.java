@@ -25,7 +25,7 @@ public class ServerPhysicsObserver {
     public void receiveNewFrame(Player player, PlayerPhysicsFrame frame) {
         this.lastFrame.put(player.getUUID(), frame);
 
-        if(!player.level().isClientSide)
+        if(!player.level().isClientSide())
             ModAdvancementTriggers.PHYSICS_UPDATE_TRIGGER.get().trigger(player, frame);
     }
 

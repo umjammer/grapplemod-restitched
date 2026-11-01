@@ -16,12 +16,12 @@ public class GrappleModRegistries {
 
 
     public static final MappedRegistry<CustomizationProperty<?>> CUSTOMIZATION_PROPERTIES = FabricRegistryBuilder
-            .createSimple(CUSTOMIZATION_PROPERTIES_KEY)
+            .create(CUSTOMIZATION_PROPERTIES_KEY)
             .attribute(RegistryAttribute.SYNCED)
             .buildAndRegister();
 
     public static final MappedRegistry<CustomizationCategory> CUSTOMIZATION_CATEGORIES = FabricRegistryBuilder
-            .createSimple(CUSTOMIZATION_CATEGORY_KEY)
+            .create(CUSTOMIZATION_CATEGORY_KEY)
             .buildAndRegister();
 
 }

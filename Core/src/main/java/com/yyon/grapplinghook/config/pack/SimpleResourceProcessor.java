@@ -1,7 +1,7 @@
 package com.yyon.grapplinghook.config.pack;
 
 import com.yyon.grapplinghook.GrappleMod;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.packs.resources.Resource;
 import net.minecraft.server.packs.resources.ResourceManager;
 
@@ -12,9 +12,9 @@ import java.util.List;
 public abstract class SimpleResourceProcessor {
 
     private final String loggingName;
-    private final ResourceLocation resourcePath;
+    private final Identifier resourcePath;
 
-    public SimpleResourceProcessor(String loggingName, ResourceLocation resourcePath) {
+    public SimpleResourceProcessor(String loggingName, Identifier resourcePath) {
         this.loggingName = loggingName;
         this.resourcePath = resourcePath;
     }
@@ -67,7 +67,7 @@ public abstract class SimpleResourceProcessor {
         return this.loggingName;
     }
 
-    public final ResourceLocation getResourcePath() {
+    public final Identifier getResourcePath() {
         return this.resourcePath;
     }
 }

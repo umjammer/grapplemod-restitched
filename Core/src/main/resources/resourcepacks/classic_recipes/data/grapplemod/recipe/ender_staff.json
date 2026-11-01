@@ -1,0 +1,11 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "equipment",
+  "ingredients": [
+    "minecraft:ender_pearl",
+    "minecraft:piston"
+  ],
+  "result": {
+    "id": "grapplemod:ender_staff"
+  }
+}

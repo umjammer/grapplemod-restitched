@@ -6,7 +6,7 @@ import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import org.jetbrains.annotations.NotNull;
 
 /*
@@ -27,7 +27,7 @@ import org.jetbrains.annotations.NotNull;
  */
 
 public record GrappleDetachS2CPayload(int holderId) implements S2CPayload {
-    public static final ResourceLocation IDENTIFIER = GrappleMod.id("grapple_detach");
+    public static final Identifier IDENTIFIER = GrappleMod.id("grapple_detach");
     public static final CustomPacketPayload.Type<GrappleDetachS2CPayload> PAYLOAD_TYPE = new Type<>(IDENTIFIER);
 
     public static final StreamCodec<RegistryFriendlyByteBuf, GrappleDetachS2CPayload> STREAM_CODEC = StreamCodec.composite(

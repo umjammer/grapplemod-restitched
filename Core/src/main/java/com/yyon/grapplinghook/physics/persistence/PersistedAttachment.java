@@ -1,5 +1,6 @@
 package com.yyon.grapplinghook.physics.persistence;
 
+import net.minecraft.core.UUIDUtil;
 import com.yyon.grapplinghook.integration.GrappleModIntegrations;
 import com.yyon.grapplinghook.integration.SubLevelIntegration;
 import com.yyon.grapplinghook.physics.attach.HookAttachment;
@@ -47,7 +48,7 @@ public sealed interface PersistedAttachment {
     }
 
     static PersistedAttachment readNbt(CompoundTag tag) {
-        return switch (tag.getString(NBT_TYPE)) {
+        return switch (tag.getStringOr(NBT_TYPE, "")) {
             case TYPE_BLOCK -> Block.read(tag);
             case TYPE_SUBLEVEL -> SubLevel.read(tag);
             case TYPE_ENTITY -> EntityAnchor.read(tag);
@@ -64,9 +65,9 @@ public sealed interface PersistedAttachment {
             if (sideHit != null) tag.putString("side", sideHit.getName());
         }
         static Block read(CompoundTag tag) {
-            BlockPos p = new BlockPos(tag.getInt("px"), tag.getInt("py"), tag.getInt("pz"));
-            Vec3 h = new Vec3(tag.getDouble("hx"), tag.getDouble("hy"), tag.getDouble("hz"));
-            Direction s = tag.contains("side") ? Direction.byName(tag.getString("side")) : null;
+            BlockPos p = new BlockPos(tag.getIntOr("px", 0), tag.getIntOr("py", 0), tag.getIntOr("pz", 0));
+            Vec3 h = new Vec3(tag.getDoubleOr("hx", 0.0), tag.getDoubleOr("hy", 0.0), tag.getDoubleOr("hz", 0.0));
+            Direction s = tag.contains("side") ? Direction.byName(tag.getStringOr("side", "")) : null;
             return new Block(p, h, s);
         }
         @Override public HookAttachment tryResolve(ServerLevel level) {
@@ -83,14 +84,14 @@ public sealed interface PersistedAttachment {
     record SubLevel(UUID subLevelId, BlockPos plotBlock, Vec3 plotHitPoint) implements PersistedAttachment {
         @Override public void writeNbt(CompoundTag tag) {
             tag.putString(NBT_TYPE, TYPE_SUBLEVEL);
-            tag.putUUID("uuid", subLevelId);
+            tag.store("uuid", UUIDUtil.CODEC, subLevelId);
             tag.putInt("px", plotBlock.getX()); tag.putInt("py", plotBlock.getY()); tag.putInt("pz", plotBlock.getZ());
             tag.putDouble("hx", plotHitPoint.x); tag.putDouble("hy", plotHitPoint.y); tag.putDouble("hz", plotHitPoint.z);
         }
         static SubLevel read(CompoundTag tag) {
-            UUID u = tag.getUUID("uuid");
-            BlockPos p = new BlockPos(tag.getInt("px"), tag.getInt("py"), tag.getInt("pz"));
-            Vec3 h = new Vec3(tag.getDouble("hx"), tag.getDouble("hy"), tag.getDouble("hz"));
+            UUID u = tag.read("uuid", UUIDUtil.CODEC).orElseThrow();
+            BlockPos p = new BlockPos(tag.getIntOr("px", 0), tag.getIntOr("py", 0), tag.getIntOr("pz", 0));
+            Vec3 h = new Vec3(tag.getDoubleOr("hx", 0.0), tag.getDoubleOr("hy", 0.0), tag.getDoubleOr("hz", 0.0));
             return new SubLevel(u, p, h);
         }
         @Override public HookAttachment tryResolve(ServerLevel level) {
@@ -107,9 +108,9 @@ public sealed interface PersistedAttachment {
     record EntityAnchor(UUID entityUuid) implements PersistedAttachment {
         @Override public void writeNbt(CompoundTag tag) {
             tag.putString(NBT_TYPE, TYPE_ENTITY);
-            tag.putUUID("uuid", entityUuid);
+            tag.store("uuid", UUIDUtil.CODEC, entityUuid);
         }
-        static EntityAnchor read(CompoundTag tag) { return new EntityAnchor(tag.getUUID("uuid")); }
+        static EntityAnchor read(CompoundTag tag) { return new EntityAnchor(tag.read("uuid", UUIDUtil.CODEC).orElseThrow()); }
         @Override public HookAttachment tryResolve(ServerLevel level) {
             Entity ent = level.getEntity(entityUuid);
             return (ent != null && ent.isAlive()) ? new HookAttachment.Entity(ent) : null;
@@ -122,12 +123,12 @@ public sealed interface PersistedAttachment {
     record ContraptionAnchor(UUID entityUuid, Vec3 localOffset) implements PersistedAttachment {
         @Override public void writeNbt(CompoundTag tag) {
             tag.putString(NBT_TYPE, TYPE_CONTRAPTION);
-            tag.putUUID("uuid", entityUuid);
+            tag.store("uuid", UUIDUtil.CODEC, entityUuid);
             tag.putDouble("lx", localOffset.x); tag.putDouble("ly", localOffset.y); tag.putDouble("lz", localOffset.z);
         }
         static ContraptionAnchor read(CompoundTag tag) {
-            return new ContraptionAnchor(tag.getUUID("uuid"),
-                    new Vec3(tag.getDouble("lx"), tag.getDouble("ly"), tag.getDouble("lz")));
+            return new ContraptionAnchor(tag.read("uuid", UUIDUtil.CODEC).orElseThrow(),
+                    new Vec3(tag.getDoubleOr("lx", 0.0), tag.getDoubleOr("ly", 0.0), tag.getDoubleOr("lz", 0.0)));
         }
         @Override public HookAttachment tryResolve(ServerLevel level) {
             Entity ent = level.getEntity(entityUuid);

@@ -23,7 +23,7 @@ import net.fabricmc.fabric.api.resource.ResourcePackActivationType;
 import net.fabricmc.loader.api.FabricLoader;
 import net.fabricmc.loader.api.ModContainer;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.packs.PackType;
 import org.apache.logging.log4j.LogManager;
@@ -165,14 +165,14 @@ public class GrappleMod implements ModInitializer {
         return currentServerInstance;
     }
 
-    public static ResourceLocation id(String id) {
-        return ResourceLocation.fromNamespaceAndPath(MOD_ID, id);
+    public static Identifier id(String id) {
+        return Identifier.fromNamespaceAndPath(MOD_ID, id);
     }
 
     /** @deprecated This just seems like a bad idea & a hack. */
     @Deprecated(since = "mc 1.21.1")
-    public static ResourceLocation vanillaId(String id) {
-        return ResourceLocation.fromNamespaceAndPath("minecraft", id);
+    public static Identifier vanillaId(String id) {
+        return Identifier.fromNamespaceAndPath("minecraft", id);
     }
 
     public static Path getDefaultConfigPath() {

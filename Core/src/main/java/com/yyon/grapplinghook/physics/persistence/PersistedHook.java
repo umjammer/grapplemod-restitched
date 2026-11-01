@@ -9,7 +9,7 @@ import com.yyon.grapplinghook.physics.io.RopeSnapshot;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtOps;
 import net.minecraft.nbt.Tag;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.Nullable;
 
@@ -17,7 +17,7 @@ public record PersistedHook(
         HookCustomization customization,
         boolean mainHand,
         boolean inDoublePair,
-        ResourceLocation dimension,
+        Identifier dimension,
         Vec3 hookPos,
         double ropeLength,
         RopeSnapshot ropeSnapshot,
@@ -44,7 +44,7 @@ public record PersistedHook(
                 HookCustomization.copyAllFrom(hook.getCurrentCustomizations()),
                 hook.isHeldInMainHand(),
                 hook.isInDoublePair,
-                hook.level().dimension().location(),
+                hook.level().dimension().identifier(),
                 hook.position(),
                 hook.ropeLength,
                 new RopeSnapshot(hook.getSegmentHandler()),
@@ -82,23 +82,23 @@ public record PersistedHook(
                 customization = new HookCustomization();
             }
 
-            CompoundTag attachTag = tag.getCompound(NBT_ATTACHMENT);
+            CompoundTag attachTag = tag.getCompoundOrEmpty(NBT_ATTACHMENT);
             PersistedAttachment attachment = PersistedAttachment.readNbt(attachTag);
             if (attachment == null) return null;
 
-            CompoundTag ropeTag = tag.getCompound(NBT_ROPE_SNAPSHOT);
+            CompoundTag ropeTag = tag.getCompoundOrEmpty(NBT_ROPE_SNAPSHOT);
             RopeSnapshot snapshot = new RopeSnapshot(ropeTag);
 
-            ResourceLocation dim = ResourceLocation.tryParse(tag.getString(NBT_DIMENSION));
+            Identifier dim = Identifier.tryParse(tag.getStringOr(NBT_DIMENSION, ""));
             if (dim == null) return null;
 
             return new PersistedHook(
                     customization,
-                    tag.getBoolean(NBT_MAIN_HAND),
-                    tag.getBoolean(NBT_DOUBLE_PAIR),
+                    tag.getBooleanOr(NBT_MAIN_HAND, false),
+                    tag.getBooleanOr(NBT_DOUBLE_PAIR, false),
                     dim,
-                    new Vec3(tag.getDouble(NBT_HOOK_X), tag.getDouble(NBT_HOOK_Y), tag.getDouble(NBT_HOOK_Z)),
-                    tag.getDouble(NBT_ROPE_LENGTH),
+                    new Vec3(tag.getDoubleOr(NBT_HOOK_X, 0.0), tag.getDoubleOr(NBT_HOOK_Y, 0.0), tag.getDoubleOr(NBT_HOOK_Z, 0.0)),
+                    tag.getDoubleOr(NBT_ROPE_LENGTH, 0.0),
                     snapshot,
                     attachment
             );

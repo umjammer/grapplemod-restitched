@@ -3,8 +3,9 @@ package com.yyon.grapplinghook.client.gui.widget;
 import com.yyon.grapplinghook.content.customization.data.HookCustomization;
 import com.yyon.grapplinghook.content.customization.type.EnumProperty;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.AbstractButton;
+import net.minecraft.client.input.InputWithModifiers;
 import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
 import net.minecraft.network.chat.Component;
@@ -31,7 +32,7 @@ public class CustomizationPicker<E extends Enum<E>> extends AbstractButton imple
     }
 
     @Override
-    public void onPress() {
+    public void onPress(InputWithModifiers input) {
         HookCustomization volume = this.customizations.get();
         E currentValue = volume.get(this.option);
         E[] validValues = this.option.getOrdinalReversal();
@@ -46,9 +47,10 @@ public class CustomizationPicker<E extends Enum<E>> extends AbstractButton imple
     }
 
     @Override
-    public void renderWidget(GuiGraphics gui, int mouseX, int mouseY, float partialTicks) {
-        super.renderWidget(gui, mouseX, mouseY, partialTicks);
-        gui.drawString(
+    protected void extractContents(GuiGraphicsExtractor gui, int mouseX, int mouseY, float partialTicks) {
+        this.extractDefaultSprite(gui);
+        this.extractDefaultLabel(gui.textRendererForWidget(this, GuiGraphicsExtractor.HoveredTextEffects.NONE));
+        gui.text(
                 Minecraft.getInstance().font,
                 this.option.getDisplayName(),
                 this.getX() + this.getWidth() + 4,

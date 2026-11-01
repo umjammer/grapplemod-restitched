@@ -33,7 +33,7 @@ def collectJars = tasks.register('collect-jars', Copy) {
     duplicatesStrategy = DuplicatesStrategy.INCLUDE
     dependsOn subprojects.collect({
         def discovered = it.tasks.findAll {
-            it.name == "remapSourcesJar" || it.name == "remapJar"
+            it.name == "sourcesJar" || it.name == "jar"
         }
 
         return discovered == null
@@ -99,10 +99,11 @@ def packageCompatModules = tasks.register('bundle-compat-modules', Copy) {
     Map expandArgs = new HashMap<>(project(":Core").properties)
     expandArgs.put("version", project(":Core").version)
     expandArgs.put("compatibility_jars", () -> {
-        if(project.property("should_bundle_compat_modules").is(false))
+        File compatDir = new File("${buildDir}/compat")
+        if(project.property("should_bundle_compat_modules").toString() != "true" || !compatDir.isDirectory())
             return ""
 
-        String[] compatJarFileNames = new File("${buildDir}/compat").listFiles().toList()
+        String[] compatJarFileNames = compatDir.listFiles().toList()
                 .stream()
                 .map { "{ \"file\": \"compat/${it.name}\" }".toString() }
                 .toArray(String[]::new)
@@ -124,11 +125,13 @@ def packageCompatModules = tasks.register('bundle-compat-modules', Copy) {
         // archive in place. Gradle 9 removed Project.exec() for script tasks,
         // so shelling out to the `jar` CLI isn't an option — Ant is built in
         // and doesn't depend on the JDK's jar being on PATH.
+        boolean hasCompat = new File("${buildDir}/compat").isDirectory()
         ant.jar(destfile: "${buildDir}/${modFileName}", update: "true") {
             fileset(dir: buildDir) {
                 include(name: 'fabric.mod.json')
             }
-            zipfileset(dir: "${buildDir}/compat", prefix: "compat")
+            if(hasCompat)
+                zipfileset(dir: "${buildDir}/compat", prefix: "compat")
         }
     }
 }

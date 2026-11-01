@@ -41,8 +41,18 @@ public class GrappleModUtils {
 		return  isMainHand ? EquipmentSlot.MAINHAND : EquipmentSlot.OFFHAND;
 	}
 
+	/** Replacement for the removed LivingEntity#getArmorSlots. */
+	public static java.util.List<ItemStack> armorItems(LivingEntity entity) {
+		java.util.List<ItemStack> stacks = new java.util.ArrayList<>(4);
+		for (net.minecraft.world.entity.EquipmentSlot slot : net.minecraft.world.entity.EquipmentSlot.values()) {
+			if (slot.getType() == net.minecraft.world.entity.EquipmentSlot.Type.HUMANOID_ARMOR)
+				stacks.add(entity.getItemBySlot(slot));
+		}
+		return stacks;
+	}
+
 	public static boolean hasArmourAbility(LivingEntity target, DataComponentType<?> ability) {
-		for (ItemStack stack : target.getArmorSlots()) {
+		for (ItemStack stack : com.yyon.grapplinghook.util.GrappleModUtils.armorItems(target)) {
 			if (stack == null) continue;
 
 			if(EnchantmentHelper.has(stack, ability))

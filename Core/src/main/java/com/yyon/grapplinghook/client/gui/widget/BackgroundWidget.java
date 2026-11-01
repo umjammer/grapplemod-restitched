@@ -2,16 +2,17 @@ package com.yyon.grapplinghook.client.gui.widget;
 
 import com.yyon.grapplinghook.GrappleMod;
 import net.minecraft.client.GameNarrator;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.narration.NarratedElementType;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 public class BackgroundWidget extends AbstractWidget {
 
-    private static final ResourceLocation BG_TEXTURE = GrappleMod.id("blueprint");
+    private static final Identifier BG_TEXTURE = GrappleMod.id("blueprint");
 
     public BackgroundWidget(int posX, int posY, int sizeVertical, int sizeHorizontal, Component text) {
         super(posX, posY, sizeVertical, sizeHorizontal, text);
@@ -23,8 +24,8 @@ public class BackgroundWidget extends AbstractWidget {
     }
 
     @Override
-    public void renderWidget(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
-        graphics.blitSprite(BG_TEXTURE, this.getX(), this.getY(), this.width, this.height);
+    public void extractWidgetRenderState(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTick) {
+        graphics.blitSprite(RenderPipelines.GUI_TEXTURED, BG_TEXTURE, this.getX(), this.getY(), this.width, this.height);
     }
 
     @Override

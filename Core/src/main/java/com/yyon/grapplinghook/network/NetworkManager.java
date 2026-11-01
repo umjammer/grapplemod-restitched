@@ -16,12 +16,12 @@ import net.minecraft.server.level.ServerPlayer;
 public class NetworkManager {
 
     public static <T extends C2SPayload> void registerC2SPacket(CustomPacketPayload.Type<T> type, StreamCodec<RegistryFriendlyByteBuf, T> codec) {
-        PayloadTypeRegistry.playC2S().register(type, codec);
+        PayloadTypeRegistry.serverboundPlay().register(type, codec);
         ServerPlayNetworking.registerGlobalReceiver(type, C2SPayloadProcessor::process);
     }
 
     public static <T extends S2CPayload> void registerS2CPacket(CustomPacketPayload.Type<T> type, StreamCodec<RegistryFriendlyByteBuf, T> codec) {
-        PayloadTypeRegistry.playS2C().register(type, codec);
+        PayloadTypeRegistry.clientboundPlay().register(type, codec);
     }
 
     public static void registerAll() {

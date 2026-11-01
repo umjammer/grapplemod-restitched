@@ -1,7 +1,7 @@
 package com.yyon.grapplinghook.content.physics;
 
 import com.yyon.grapplinghook.GrappleMod;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 /**
  * Physics are handled on the client side, however, these IDs are useful
@@ -9,10 +9,10 @@ import net.minecraft.resources.ResourceLocation;
  */
 public class PhysicsControllers {
 
-    public static final ResourceLocation NONE = GrappleMod.id("none");
+    public static final Identifier NONE = GrappleMod.id("none");
 
-    public static final ResourceLocation GRAPPLING_HOOK = GrappleMod.id("grappling_hook");
-    public static final ResourceLocation AIR_FRICTION = GrappleMod.id("air_friction");
-    public static final ResourceLocation FORCEFIELD = GrappleMod.id("forcefield");
+    public static final Identifier GRAPPLING_HOOK = GrappleMod.id("grappling_hook");
+    public static final Identifier AIR_FRICTION = GrappleMod.id("air_friction");
+    public static final Identifier FORCEFIELD = GrappleMod.id("forcefield");
 
 }

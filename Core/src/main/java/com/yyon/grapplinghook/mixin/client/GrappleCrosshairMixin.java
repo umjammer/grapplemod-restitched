@@ -1,20 +1,18 @@
 package com.yyon.grapplinghook.mixin.client;
 
-import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.platform.Window;
-import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.blaze3d.vertex.*;
 import com.yyon.grapplinghook.client.GrappleModClient;
 import com.yyon.grapplinghook.content.item.GrapplehookItem;
 import com.yyon.grapplinghook.content.registry.internal.ModItems;
 import com.yyon.grapplinghook.content.customization.data.HookCustomization;
 import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.Gui;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.gui.Hud;
 import net.minecraft.client.player.LocalPlayer;
-import net.minecraft.client.renderer.GameRenderer;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.client.renderer.RenderPipelines;
+import net.minecraft.resources.Identifier;
+import net.minecraft.util.ARGB;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.item.ItemStack;
 import org.spongepowered.asm.mixin.Final;
@@ -27,21 +25,18 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import static com.yyon.grapplinghook.content.registry.CustomizationProperties.*;
 
-@Mixin(Gui.class)
+@Mixin(Hud.class)
 public abstract class GrappleCrosshairMixin {
-
-    @Unique
-    private static final float Z_LEVEL = -90.0f;
 
     @Final @Shadow
     private Minecraft minecraft;
 
-    @Shadow @Final private static ResourceLocation CROSSHAIR_SPRITE;
+    @Shadow @Final private static Identifier CROSSHAIR_SPRITE;
 
 
-    @Inject(method = "renderCrosshair(Lnet/minecraft/client/gui/GuiGraphics;Lnet/minecraft/client/DeltaTracker;)V",
-            at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/GuiGraphics;blitSprite(Lnet/minecraft/resources/ResourceLocation;IIII)V", shift = At.Shift.AFTER, ordinal = 0))
-    public void renderModCrosshair(GuiGraphics guiGraphics, DeltaTracker deltaTracker, CallbackInfo ci) {
+    @Inject(method = "extractCrosshair(Lnet/minecraft/client/gui/GuiGraphicsExtractor;Lnet/minecraft/client/DeltaTracker;)V",
+            at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/GuiGraphicsExtractor;blitSprite(Lcom/mojang/renderpearl/api/pipeline/RenderPipeline;Lnet/minecraft/resources/Identifier;IIII)V", shift = At.Shift.AFTER, ordinal = 0))
+    public void renderModCrosshair(GuiGraphicsExtractor graphics, DeltaTracker deltaTracker, CallbackInfo ci) {
 
         LocalPlayer player = this.minecraft.player;
         ItemStack grapplehookItemStack = null;
@@ -72,22 +67,22 @@ public abstract class GrappleCrosshairMixin {
             int h = resolution.getGuiScaledHeight();
 
             double fov = Math.toRadians(this.minecraft.options.fov().get());
-            fov *= player.getFieldOfViewModifier();
+            fov *= player.getFieldOfViewModifier(true, this.minecraft.options.fovEffectScale().get().floatValue());
             double l = ((double) h/2) / Math.tan(fov/2);
 
             if (!((verticalAngle == 0) && (!custom.get(DOUBLE_HOOK_ATTACHED.get()) || angle == 0))) {
                 int offset = (int) (Math.tan(angle) * l);
                 int verticalOffset = (int) (-Math.tan(verticalAngle) * l);
 
-                this.drawCrosshair(guiGraphics, w / 2 + offset, h / 2 + verticalOffset);
+                this.drawCrosshair(graphics, w / 2 + offset, h / 2 + verticalOffset);
                 if (angle != 0) {
-                    this.drawCrosshair(guiGraphics, w / 2 - offset, h / 2 + verticalOffset);
+                    this.drawCrosshair(graphics, w / 2 - offset, h / 2 + verticalOffset);
                 }
             }
 
             if (custom.get(ROCKET_ATTACHED.get()) && custom.get(ROCKET_ANGLE.get()) != 0) {
                 int verticalOffset = (int) (-Math.tan(Math.toRadians(custom.get(ROCKET_ANGLE.get()))) * l);
-                this.drawCrosshair(guiGraphics, w / 2, h / 2 + verticalOffset);
+                this.drawCrosshair(graphics, w / 2, h / 2 + verticalOffset);
             }
         }
 
@@ -100,32 +95,20 @@ public abstract class GrappleCrosshairMixin {
 
             int totalbarLength = w / 8;
 
-            RenderSystem.getModelViewStack().pushMatrix();
-            this.drawRect(w / 2 - totalbarLength / 2, h * 3 / 4, totalbarLength, 2, 50, 100);
-            this.drawRect(w / 2 - totalbarLength / 2, h * 3 / 4, (int) (totalbarLength * rocketFuel), 2, 200, 255);
-            RenderSystem.getModelViewStack().popMatrix();
+            this.drawRect(graphics, w / 2 - totalbarLength / 2, h * 3 / 4, totalbarLength, 2, 50, 100);
+            this.drawRect(graphics, w / 2 - totalbarLength / 2, h * 3 / 4, (int) (totalbarLength * rocketFuel), 2, 200, 255);
         }
     }
 
 
     @Unique
-    private void drawCrosshair(GuiGraphics guiGraphics, int x, int y) {
-        RenderSystem.blendFuncSeparate(GlStateManager.SourceFactor.ONE_MINUS_DST_COLOR, GlStateManager.DestFactor.ONE_MINUS_SRC_COLOR, GlStateManager.SourceFactor.ONE, GlStateManager.DestFactor.ZERO);
-        guiGraphics.blitSprite(CROSSHAIR_SPRITE, (int) (x - (15.0F/2)), (int) (y - (15.0F/2)), 15, 15);
-        RenderSystem.defaultBlendFunc();
+    private void drawCrosshair(GuiGraphicsExtractor graphics, int x, int y) {
+        // The CROSSHAIR pipeline carries the inverting blend that used to be set up by hand.
+        graphics.blitSprite(RenderPipelines.CROSSHAIR, CROSSHAIR_SPRITE, (int) (x - (15.0F/2)), (int) (y - (15.0F/2)), 15, 15);
     }
 
     @Unique
-    public void drawRect(int x, int y, int width, int height, int g, int a)
-    {
-        RenderSystem.setShader(GameRenderer::getPositionColorShader);
-        BufferBuilder bufferbuilder = Tesselator.getInstance().begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_COLOR);
-
-        bufferbuilder.addVertex(x, y + height, Z_LEVEL).setColor(g, g, g, a);
-        bufferbuilder.addVertex(x + width, y + height, Z_LEVEL).setColor(g, g, g, a);
-        bufferbuilder.addVertex(x + width, y, Z_LEVEL).setColor(g, g, g, a);
-        bufferbuilder.addVertex(x, y, Z_LEVEL).setColor(g, g, g, a);
-
-        BufferUploader.drawWithShader(bufferbuilder.buildOrThrow());
+    private void drawRect(GuiGraphicsExtractor graphics, int x, int y, int width, int height, int g, int a) {
+        graphics.fill(x, y, x + width, y + height, ARGB.color(a, g, g, g));
     }
 }

@@ -6,7 +6,7 @@ import com.yyon.grapplinghook.content.physics.PhysicsControllers;
 import com.yyon.grapplinghook.content.customization.data.HookCustomization;
 import com.yyon.grapplinghook.util.GrappleModUtils;
 import com.yyon.grapplinghook.util.Vec;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.level.Level;
 
@@ -26,7 +26,7 @@ public class AirFrictionPhysicsController extends GrapplingHookPhysicsController
 	}
 
 	@Override
-	public ResourceLocation getType() {
+	public Identifier getType() {
 		return PhysicsControllers.AIR_FRICTION;
 	}
 

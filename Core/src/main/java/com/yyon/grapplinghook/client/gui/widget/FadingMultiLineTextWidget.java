@@ -1,7 +1,7 @@
 package com.yyon.grapplinghook.client.gui.widget;
 
 import net.minecraft.client.gui.Font;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.MultiLineTextWidget;
 import net.minecraft.network.chat.Component;
 import net.minecraft.util.Mth;
@@ -19,25 +19,22 @@ public class FadingMultiLineTextWidget extends MultiLineTextWidget {
 
 
     @Override
-    public void renderWidget(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTicks) {
+    public void extractWidgetRenderState(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTicks) {
         this.ticksAlive += partialTicks;
 
         float visibilityLifecycle = 1.3f - (this.ticksAlive / this.maxFadeTicks);
         float opacity = Mth.clamp(visibilityLifecycle, 0.0f, 1.0f);
-        int fullOpacity = ((int) Math.floor(opacity * 255)) & 0xFF;
 
-        // For some reason, an opacity of less than 5 gets displayed as if it's opacity is 255.
-        // Just skip rendering instead.
-        if(fullOpacity < 5)
+        // Very low opacities aren't worth drawing - skip instead.
+        if(opacity * 255 < 5)
             return;
 
-        int initialColour = this.getColor();
-        int rgbOnly = 0x00FFFFFF & initialColour;
-        int composedColour = rgbOnly | (fullOpacity << 24);
-
-        this.setColor(composedColour);
-        super.renderWidget(guiGraphics, mouseX, mouseY, partialTicks);
-        this.setColor(initialColour);
+        // Text colour is no longer settable on the widget; text drawn for a
+        // widget picks up the widget's alpha instead.
+        float initialAlpha = this.getAlpha();
+        this.setAlpha(opacity);
+        super.extractWidgetRenderState(graphics, mouseX, mouseY, partialTicks);
+        this.setAlpha(initialAlpha);
     }
 
 

@@ -8,7 +8,7 @@ import net.minecraft.world.item.crafting.RecipeSerializer;
 
 public final class ModRecipeSerializers {
 
-    public static final RecipeSerializer<HookUpgradeSmithingRecipe> HOOK_UPGRADE = new HookUpgradeSmithingRecipe.Serializer();
+    public static final RecipeSerializer<HookUpgradeSmithingRecipe> HOOK_UPGRADE = HookUpgradeSmithingRecipe.SERIALIZER;
 
     public static void registerAll() {
         Registry.register(BuiltInRegistries.RECIPE_SERIALIZER, GrappleMod.id("hook_upgrade"), HOOK_UPGRADE);

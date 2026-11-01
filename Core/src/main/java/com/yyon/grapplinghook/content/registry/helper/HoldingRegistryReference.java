@@ -2,7 +2,7 @@ package com.yyon.grapplinghook.content.registry.helper;
 
 import net.minecraft.core.Holder;
 import net.minecraft.core.Registry;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 import java.util.function.Supplier;
 
@@ -12,7 +12,7 @@ public abstract class HoldingRegistryReference<B, T extends B> extends AbstractR
 
     private Holder<B> holder;
 
-    protected HoldingRegistryReference(ResourceLocation id, Supplier<T> factory, Registry<B> registry) {
+    protected HoldingRegistryReference(Identifier id, Supplier<T> factory, Registry<B> registry) {
         super(id, factory);
         this.registry = registry;
         this.holder = null;

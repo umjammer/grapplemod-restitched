@@ -10,5 +10,6 @@ pluginManagement {
 
 include(":Core")
 //include(":Compat:Gliders")
-include(":Compat:Create")
-include(":Compat:Sable")
+// Create and Sable have no 26.x releases yet; re-enable once they do.
+//include(":Compat:Create")
+//include(":Compat:Sable")

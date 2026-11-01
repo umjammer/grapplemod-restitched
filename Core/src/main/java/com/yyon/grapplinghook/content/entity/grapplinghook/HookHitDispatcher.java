@@ -24,7 +24,7 @@ final class HookHitDispatcher {
     private HookHitDispatcher() {}
 
     static void dispatch(GrapplinghookEntity hook, HitResult hit) {
-        if (hook.level().isClientSide) return;
+        if (hook.level().isClientSide()) return;
 
         if (hook.attachment() != null ||
             hook.shootingEntity == null || hook.shootingEntityID == 0 || !hook.shootingEntity.isAlive() ||

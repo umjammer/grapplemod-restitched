@@ -3,11 +3,11 @@ package com.yyon.grapplinghook.client;
 import com.mojang.blaze3d.platform.InputConstants;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
-import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
+import com.yyon.grapplinghook.GrappleMod;
+import net.fabricmc.fabric.api.client.keymapping.v1.KeyMappingHelper;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.Options;
-import org.lwjgl.glfw.GLFW;
 
 import java.util.ArrayList;
 import java.util.function.Function;
@@ -16,6 +16,9 @@ import java.util.function.Function;
 public class ModKeys {
 
     public static ArrayList<KeyMapping> keyBindings = new ArrayList<>();
+
+    // Translated via "key.category.grapplemod.category".
+    public static final KeyMapping.Category CATEGORY = KeyMapping.Category.register(GrappleMod.id("category"));
 
     public static KeyMapping createKeyBinding(KeyMapping k) {
         keyBindings.add(k);
@@ -27,23 +30,23 @@ public class ModKeys {
         return new WithFallback(k, vanillaFallback);
     }
 
-    public static final WithFallback THROW_HOOKS = ModKeys.createKeyBindingWithFallback(new KeyMapping("key.boththrow.desc", GLFW.GLFW_KEY_UNKNOWN, "key.grapplemod.category"), options -> options.keyUse);
-    public static final WithFallback TOGGLE_MOTOR = ModKeys.createKeyBindingWithFallback(new KeyMapping("key.motoronoff.desc", GLFW.GLFW_KEY_UNKNOWN, "key.grapplemod.category"), options -> options.keyShift);
-    public static final WithFallback DETACH = ModKeys.createKeyBindingWithFallback(new KeyMapping("key.jumpanddetach.desc", GLFW.GLFW_KEY_UNKNOWN, "key.grapplemod.category"), options -> options.keyJump);
-    public static final WithFallback DAMPEN_SWING = ModKeys.createKeyBindingWithFallback(new KeyMapping("key.slow.desc", GLFW.GLFW_KEY_UNKNOWN, "key.grapplemod.category"), options -> options.keyShift);
-    public static final WithFallback CLIMB = ModKeys.createKeyBindingWithFallback(new KeyMapping("key.climb.desc", GLFW.GLFW_KEY_UNKNOWN, "key.grapplemod.category"), options -> options.keyShift);
-    public static final WithFallback HOOK_ENDER_LAUNCH = ModKeys.createKeyBindingWithFallback(new KeyMapping("key.enderlaunch.desc", GLFW.GLFW_KEY_UNKNOWN, "key.grapplemod.category"), options -> options.keyAttack);
-    public static final WithFallback ROCKET = ModKeys.createKeyBindingWithFallback(new KeyMapping("key.rocket.desc", GLFW.GLFW_KEY_UNKNOWN, "key.grapplemod.category"), options -> options.keyAttack);
+    public static final WithFallback THROW_HOOKS = ModKeys.createKeyBindingWithFallback(new KeyMapping("key.boththrow.desc", InputConstants.UNKNOWN.getValue(), CATEGORY), options -> options.keyUse);
+    public static final WithFallback TOGGLE_MOTOR = ModKeys.createKeyBindingWithFallback(new KeyMapping("key.motoronoff.desc", InputConstants.UNKNOWN.getValue(), CATEGORY), options -> options.keyShift);
+    public static final WithFallback DETACH = ModKeys.createKeyBindingWithFallback(new KeyMapping("key.jumpanddetach.desc", InputConstants.UNKNOWN.getValue(), CATEGORY), options -> options.keyJump);
+    public static final WithFallback DAMPEN_SWING = ModKeys.createKeyBindingWithFallback(new KeyMapping("key.slow.desc", InputConstants.UNKNOWN.getValue(), CATEGORY), options -> options.keyShift);
+    public static final WithFallback CLIMB = ModKeys.createKeyBindingWithFallback(new KeyMapping("key.climb.desc", InputConstants.UNKNOWN.getValue(), CATEGORY), options -> options.keyShift);
+    public static final WithFallback HOOK_ENDER_LAUNCH = ModKeys.createKeyBindingWithFallback(new KeyMapping("key.enderlaunch.desc", InputConstants.UNKNOWN.getValue(), CATEGORY), options -> options.keyAttack);
+    public static final WithFallback ROCKET = ModKeys.createKeyBindingWithFallback(new KeyMapping("key.rocket.desc", InputConstants.UNKNOWN.getValue(), CATEGORY), options -> options.keyAttack);
 
-    public static final KeyMapping THROW_OFF_HOOK = ModKeys.createKeyBinding(new KeyMapping("key.off_throw.desc", InputConstants.UNKNOWN.getValue(), "key.grapplemod.category"));
-    public static final KeyMapping THROW_MAIN_HOOK = ModKeys.createKeyBinding(new KeyMapping("key.main_throw.desc", InputConstants.UNKNOWN.getValue(), "key.grapplemod.category"));
-    public static final KeyMapping CLIMB_UP = ModKeys.createKeyBinding(new KeyMapping("key.climbup.desc", InputConstants.UNKNOWN.getValue(), "key.grapplemod.category"));
-    public static final KeyMapping CLIMB_DOWN = ModKeys.createKeyBinding(new KeyMapping("key.climbdown.desc", InputConstants.UNKNOWN.getValue(), "key.grapplemod.category"));
+    public static final KeyMapping THROW_OFF_HOOK = ModKeys.createKeyBinding(new KeyMapping("key.off_throw.desc", InputConstants.UNKNOWN.getValue(), CATEGORY));
+    public static final KeyMapping THROW_MAIN_HOOK = ModKeys.createKeyBinding(new KeyMapping("key.main_throw.desc", InputConstants.UNKNOWN.getValue(), CATEGORY));
+    public static final KeyMapping CLIMB_UP = ModKeys.createKeyBinding(new KeyMapping("key.climbup.desc", InputConstants.UNKNOWN.getValue(), CATEGORY));
+    public static final KeyMapping CLIMB_DOWN = ModKeys.createKeyBinding(new KeyMapping("key.climbdown.desc", InputConstants.UNKNOWN.getValue(), CATEGORY));
 
 
     public static void registerAll() {
         for(KeyMapping mapping: ModKeys.keyBindings) {
-            KeyBindingHelper.registerKeyBinding(mapping);
+            KeyMappingHelper.registerKeyMapping(mapping);
         }
     }
 

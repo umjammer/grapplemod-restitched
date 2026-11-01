@@ -5,7 +5,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.google.gson.JsonPrimitive;
 import com.yyon.grapplinghook.util.exception.InvalidDataException;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.packs.resources.Resource;
 
 import java.io.BufferedReader;
@@ -15,7 +15,7 @@ public abstract class SimpleJsonResourceProcessor extends SimpleResourceProcesso
 
     private final int supportedFormatVersion;
 
-    public SimpleJsonResourceProcessor(String loggingName, int version, ResourceLocation resourcePath) {
+    public SimpleJsonResourceProcessor(String loggingName, int version, Identifier resourcePath) {
         super(loggingName, resourcePath);
         this.supportedFormatVersion = version;
     }

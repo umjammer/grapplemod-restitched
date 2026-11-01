@@ -3,7 +3,7 @@ package com.yyon.grapplinghook.client.gui.widget;
 import com.yyon.grapplinghook.content.customization.data.HookCustomization;
 import com.yyon.grapplinghook.content.customization.type.BooleanProperty;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.input.InputWithModifiers;
 import net.minecraft.client.gui.components.Checkbox;
 import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.network.chat.Component;
@@ -29,16 +29,11 @@ public class CustomizationCheckbox extends Checkbox implements CustomTooltipHand
     }
 
     @Override
-    public void onPress() {
-        super.onPress();
+    public void onPress(InputWithModifiers input) {
+        super.onPress(input);
 
         this.customizations.get().set(this.option, this.selected());
         this.onValueUpdated.run();
-    }
-
-    @Override
-    public void renderWidget(GuiGraphics gui, int mouseX, int mouseY, float partialTicks) {
-        super.renderWidget(gui, mouseX, mouseY, partialTicks);
     }
 
     @Override

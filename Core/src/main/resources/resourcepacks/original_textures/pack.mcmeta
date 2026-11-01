@@ -1,6 +1,7 @@
 {
     "pack": {
         "description": "The classic textures from the Grappling Hook Mod (built-in)",
-        "pack_format": 22
+        "min_format": 97,
+        "max_format": 97
     }
 }

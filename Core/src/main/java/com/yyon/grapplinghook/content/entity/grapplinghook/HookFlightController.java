@@ -25,7 +25,7 @@ final class HookFlightController {
      * through plot-space chunks could hang the server).
      */
     static boolean runPreTickScans(GrapplinghookEntity hook, SubLevelIntegration sli) {
-        if (hook.attachment() == null && !hook.level().isClientSide) {
+        if (hook.attachment() == null && !hook.level().isClientSide()) {
             Vec3 rayStart = hook.position();
             Vec3 rayEnd = rayStart.add(hook.getDeltaMovement());
             @Nullable EntityHitResult contraptionHit = GrappleModIntegrations
@@ -46,7 +46,7 @@ final class HookFlightController {
             SubLevelIntegration.SubLevelRaycastHit[] bestHit = { null };
             double[] bestDistSq = { Double.POSITIVE_INFINITY };
             boolean[] crossedRef = { false };
-            boolean isServer = !hook.level().isClientSide;
+            boolean isServer = !hook.level().isClientSide();
 
             sli.forEachTrackedSubLevelSwept((uuid, aabb) -> {
                 if (!aabb.clip(rayStart, rayEnd).isPresent()) return;

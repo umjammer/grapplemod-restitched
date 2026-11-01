@@ -34,9 +34,13 @@ import net.minecraft.sounds.SoundEvents;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.InterpolationHandler;
+import net.minecraft.world.entity.InterpolationTracker;
+import net.minecraft.core.PositionAndRotation;
+import net.minecraft.world.entity.PositionPath;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.entity.projectile.ThrowableItemProjectile;
+import net.minecraft.world.entity.projectile.throwableitemprojectile.ThrowableItemProjectile;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.item.Item;
@@ -121,7 +125,7 @@ public class GrapplinghookEntity extends ThrowableItemProjectile implements IExt
 	}
 
 	public GrapplinghookEntity(Level world, LivingEntity shooter, boolean isAttachedToMainHand, HookCustomization customization, boolean isInDoublePair) {
-		super(ModEntities.GRAPPLE_HOOK.get(), shooter.position().x, shooter.position().y + shooter.getEyeHeight(), shooter.position().z, world);
+		super(ModEntities.GRAPPLE_HOOK.get(), shooter.position().x, shooter.position().y + shooter.getEyeHeight(), shooter.position().z, world, new ItemStack(ModItems.GRAPPLING_HOOK.get()));
 
 		this.shootingEntity = shooter;
 		this.shootingEntityID = this.shootingEntity.getId();
@@ -185,9 +189,22 @@ public class GrapplinghookEntity extends ThrowableItemProjectile implements IExt
 	}
 
 	@Override
-	public void lerpTo(double x, double y, double z, float yRot, float xRot, int lerpSteps) {
-		if (this.isAttachedToMovingBody()) return;
-		super.lerpTo(x, y, z, yRot, xRot, lerpSteps);
+	protected InterpolationHandler createInterpolationHandler() {
+		// Entity#lerpTo is gone; server position updates now go through the interpolation handler.
+		// While riding a moving body the hook positions itself, so swallow those updates.
+		InterpolationHandler base = super.createInterpolationHandler();
+		return new InterpolationHandler() {
+			@Override public InterpolationTracker interpolationTracker() { return base.interpolationTracker(); }
+			@Override public @Nullable PositionAndRotation target() { return base.target(); }
+			@Override public boolean interpolateTo(@Nullable PositionPath position, float yRot, float xRot, boolean hasRotation) {
+				if (GrapplinghookEntity.this.isAttachedToMovingBody()) return true;
+				return base.interpolateTo(position, yRot, xRot, hasRotation);
+			}
+			@Override public void interpolate() { base.interpolate(); }
+			@Override public void applyPredictedMovement(Vec3 delta) { base.applyPredictedMovement(delta); }
+			@Override public boolean hasActiveInterpolation() { return base.hasActiveInterpolation(); }
+			@Override public void cancel() { base.cancel(); }
+		};
 	}
 
 	@Override
@@ -196,15 +213,6 @@ public class GrapplinghookEntity extends ThrowableItemProjectile implements IExt
 			return 0.0F;
 
 		return this.customization.get(HOOK_GRAVITY_MULTIPLIER.get()).floatValue() * 0.1F;
-	}
-
-	@NotNull
-	@Override
-	public AABB getBoundingBoxForCulling() {
-		if (this.shootingEntity == null) {
-			return super.getBoundingBoxForCulling();
-		}
-		return this.segmentHandler.getBoundingBox(Vec.positionVec(this), this.getRopeOriginAtHolder());
 	}
 
 	@NotNull
@@ -251,7 +259,7 @@ public class GrapplinghookEntity extends ThrowableItemProjectile implements IExt
 
 		if (this.attachment != null && !this.attachment.follow(this, sli)) return;
 
-		if (this.level().isClientSide || this.shootingEntity == null) return;
+		if (this.level().isClientSide() || this.shootingEntity == null) return;
 
 		if (this.isAttachedToAnything()) {
 			this.handleAttachedRope();
@@ -277,7 +285,7 @@ public class GrapplinghookEntity extends ThrowableItemProjectile implements IExt
 
 	public void onAttachedEntityPerished() {
 		GrappleMod.LOGGER.warn("Attached entity has perished ...");
-		if (!this.level().isClientSide && this.shootingEntityID != 0) {
+		if (!this.level().isClientSide() && this.shootingEntityID != 0) {
 			GrappleModUtils.sendToCorrectClient(
 					new GrappleDetachS2CPayload(this.shootingEntityID),
 					this.shootingEntityID,
@@ -309,8 +317,8 @@ public class GrapplinghookEntity extends ThrowableItemProjectile implements IExt
 	}
 
 	@Override
-	public InteractionResult interact(Player player, InteractionHand hand) {
-		if (this.level().isClientSide) {
+	public InteractionResult interact(Player player, InteractionHand hand, Vec3 location) {
+		if (this.level().isClientSide()) {
 			return player.getItemInHand(hand).getItem() == Items.SHEARS
 					? InteractionResult.SUCCESS
 					: InteractionResult.PASS;
@@ -328,7 +336,7 @@ public class GrapplinghookEntity extends ThrowableItemProjectile implements IExt
 
 		this.cutCount++;
 		this.playSound(SoundEvents.SHEEP_SHEAR, 0.8f, 1.2f);
-		weapon.hurtAndBreak(5, player, LivingEntity.getSlotForHand(hand));
+		weapon.hurtAndBreak(5, player, hand);
 
 		if (this.cutCount >= config.getHookCutsRequired()) {
 			this.releaseAndRemove();
@@ -339,7 +347,7 @@ public class GrapplinghookEntity extends ThrowableItemProjectile implements IExt
 
 
 	private void handleHookPhysics() {
-		if (this.segmentHandler.hookPastBend(this.ropeLength) && !this.level().isClientSide) {
+		if (this.segmentHandler.hookPastBend(this.ropeLength) && !this.level().isClientSide()) {
 			RopeBend farthestBend = this.segmentHandler.getBends().get(1);
 			Vec farthest = farthestBend.worldPos;
 			HookAttachment newAnchor = switch (farthestBend.space) {
@@ -387,7 +395,7 @@ public class GrapplinghookEntity extends ThrowableItemProjectile implements IExt
 					for (int i = 1; i <= bendnumber; i++)
 						this.segmentHandler.removeSegment(1);
 
-					if(!this.level().isClientSide)
+					if(!this.level().isClientSide())
 						this.serverAttach(
 								new HookAttachment.Block(blockpos, closest.toVec3d(), null),
 								false);
@@ -463,7 +471,7 @@ public class GrapplinghookEntity extends ThrowableItemProjectile implements IExt
 
 
 	public void serverAttach(HookAttachment target, boolean force) {
-		if (this.level().isClientSide) return;
+		if (this.level().isClientSide()) return;
 		if (this.attachment != null) return;
 		if (this.shootingEntity == null || this.shootingEntityID == 0) return;
 
@@ -516,7 +524,7 @@ public class GrapplinghookEntity extends ThrowableItemProjectile implements IExt
 	}
 
 	public void reattachToContraption(Entity contraption, Vec3 localOffset, @Nullable BlockPos localBlockPos) {
-		if (this.level().isClientSide) return;
+		if (this.level().isClientSide()) return;
 		if (this.attachment == null) return;
 
 		this.setAttachment(new HookAttachment.ContraptionBlock(contraption, localOffset, localBlockPos));
@@ -529,7 +537,7 @@ public class GrapplinghookEntity extends ThrowableItemProjectile implements IExt
 
 
 	public void reattachToSubLevel(UUID subLevelId, BlockPos plotBlock, Vec3 plotHitPoint) {
-		if (this.level().isClientSide) return;
+		if (this.level().isClientSide()) return;
 		if (this.attachment == null) return;
 
 		this.setAttachment(new HookAttachment.SubLevelBlock(subLevelId, plotBlock, plotHitPoint));
@@ -552,7 +560,7 @@ public class GrapplinghookEntity extends ThrowableItemProjectile implements IExt
 	}
 
 public void reattachToBlock(BlockPos blockPos, Vec3 hookWorldPos) {
-		if (this.level().isClientSide) return;
+		if (this.level().isClientSide()) return;
 
 		this.setAttachment(new HookAttachment.Block(blockPos, hookWorldPos, null));
 
@@ -566,7 +574,7 @@ public void reattachToBlock(BlockPos blockPos, Vec3 hookWorldPos) {
 	}
 
 	public void releaseAndRemove() {
-		if (this.level().isClientSide) return;
+		if (this.level().isClientSide()) return;
 		if (this.shootingEntityID != 0) {
 			GrappleModUtils.sendToCorrectClient(
 					new GrappleDetachS2CPayload(this.shootingEntityID),
@@ -607,7 +615,7 @@ public void reattachToBlock(BlockPos blockPos, Vec3 hookWorldPos) {
 	}
 
 	boolean canAttachToBlock(BlockState blockState) {
-		return this.level().getGameRules().getBoolean(ModGamerules.USE_LIMITED_HOOK)
+		return this.level() instanceof ServerLevel serverLevel && serverLevel.getGameRules().get(ModGamerules.USE_LIMITED_HOOK)
 				? blockState.is(ModTags.LIMITED_HOOK_ALLOWED)
 				: !blockState.is(ModTags.HOOK_DISALLOWED);
 	}

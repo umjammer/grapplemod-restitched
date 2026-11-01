@@ -1,9 +1,12 @@
 {
-    "type": "grapplemod:hook_upgrade",
-
-    "template": { "item": "grapplemod:base_upgrade" },
-    "addition": { "item": "minecraft:piston" },
-
-    "applies": [ "grapplemod:motor" ],
-    "excludes_if_any": [ "grapplemod:magnet", "grapplemod:forcefield" ]
+  "type": "grapplemod:hook_upgrade",
+  "template": "grapplemod:base_upgrade",
+  "addition": "minecraft:piston",
+  "applies": [
+    "grapplemod:motor"
+  ],
+  "excludes_if_any": [
+    "grapplemod:magnet",
+    "grapplemod:forcefield"
+  ]
 }

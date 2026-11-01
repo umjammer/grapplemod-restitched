@@ -72,17 +72,17 @@ public class RopeSnapshot {
     public RopeSnapshot(CompoundTag nbt) {
         this.bends = new ArrayList<>();
 
-        this.ropeLength = nbt.getDouble(NBT_ROPE_LENGTH);
-        ListTag segmentsTag = nbt.getList(NBT_SEGMENTS_LIST, Tag.TAG_COMPOUND);
+        this.ropeLength = nbt.getDoubleOr(NBT_ROPE_LENGTH, 0.0);
+        ListTag segmentsTag = nbt.getListOrEmpty(NBT_SEGMENTS_LIST);
 
         for (int i = 0; i < segmentsTag.size(); i++) {
-            CompoundTag entry = segmentsTag.getCompound(i);
+            CompoundTag entry = segmentsTag.getCompoundOrEmpty(i);
 
-            ListTag posTag = entry.getList(NBT_POS, Tag.TAG_DOUBLE);
+            ListTag posTag = entry.getListOrEmpty(NBT_POS);
             Vec pos = new Vec(posTag);
 
-            String topSide = entry.getString(NBT_TOP);
-            String bottomSide = entry.getString(NBT_BOTTOM);
+            String topSide = entry.getStringOr(NBT_TOP, "");
+            String bottomSide = entry.getStringOr(NBT_BOTTOM, "");
             Direction topSideDir = !topSide.equalsIgnoreCase("null")
                     ? Direction.byName(topSide)
                     : null;
@@ -91,7 +91,7 @@ public class RopeSnapshot {
                     : null;
 
             AnchorSpace space = entry.contains(NBT_SPACE)
-                    ? AnchorSpace.readFromNbt(entry.getCompound(NBT_SPACE))
+                    ? AnchorSpace.readFromNbt(entry.getCompoundOrEmpty(NBT_SPACE))
                     : AnchorSpace.World.INSTANCE;
 
             this.bends.add(new RopeBend(space, pos, pos, topSideDir, bottomSideDir));

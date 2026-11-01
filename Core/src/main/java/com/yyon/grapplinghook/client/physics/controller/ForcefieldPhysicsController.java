@@ -2,7 +2,7 @@ package com.yyon.grapplinghook.client.physics.controller;
 
 import com.yyon.grapplinghook.content.physics.PhysicsControllers;
 import com.yyon.grapplinghook.util.Vec;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.Level;
 
@@ -17,7 +17,7 @@ public class ForcefieldPhysicsController extends GrapplingHookPhysicsController 
 	}
 
 	@Override
-	public ResourceLocation getType() {
+	public Identifier getType() {
 		return PhysicsControllers.FORCEFIELD;
 	}
 

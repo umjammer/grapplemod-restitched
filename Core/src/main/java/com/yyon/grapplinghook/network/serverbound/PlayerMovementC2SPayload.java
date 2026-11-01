@@ -8,7 +8,7 @@ import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerPlayer;
 import org.jetbrains.annotations.NotNull;
 import org.joml.Vector3f;
@@ -31,15 +31,15 @@ import org.joml.Vector3f;
  */
 
 public record PlayerMovementC2SPayload(int entityId, Vector3f pos, Vector3f motion) implements C2SPayload {
-	public static final ResourceLocation IDENTIFIER = GrappleMod.id("player_movement");
+	public static final Identifier IDENTIFIER = GrappleMod.id("player_movement");
 	public static final CustomPacketPayload.Type<PlayerMovementC2SPayload> PAYLOAD_TYPE = new Type<>(IDENTIFIER);
 
 	public static final StreamCodec<RegistryFriendlyByteBuf, PlayerMovementC2SPayload> STREAM_CODEC = StreamCodec.composite(
 			ByteBufCodecs.INT,
 			PlayerMovementC2SPayload::entityId,
-			ByteBufCodecs.VECTOR3F,
+			ByteBufCodecs.VECTOR3F.map(Vector3f::new, v -> v),
 			PlayerMovementC2SPayload::pos,
-			ByteBufCodecs.VECTOR3F,
+			ByteBufCodecs.VECTOR3F.map(Vector3f::new, v -> v),
 			PlayerMovementC2SPayload::motion,
 
 			PlayerMovementC2SPayload::new

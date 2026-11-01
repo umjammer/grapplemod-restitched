@@ -4,7 +4,7 @@ import com.yyon.grapplinghook.GrappleMod;
 import com.yyon.grapplinghook.content.registry.helper.AbstractRegistryReference;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Block;
@@ -13,18 +13,20 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.function.Supplier;
+import java.util.function.UnaryOperator;
 
 public class ModBlocks {
 
-    private static final HashMap<ResourceLocation, BlockEntry<?>> blocks;
+    private static final HashMap<Identifier, BlockEntry<?>> blocks;
 
     static {
         blocks = new HashMap<>();
     }
 
     public static <B extends Block> Flow<B> block(String id, Supplier<B> block) {
-        ResourceLocation qualId = GrappleMod.id(id);
+        Identifier qualId = GrappleMod.id(id);
         BlockEntry<B> entry = new BlockEntry<>(qualId, block);
         blocks.put(qualId, entry);
         return new Flow<>(entry);
@@ -32,8 +34,8 @@ public class ModBlocks {
 
 
     public static void registerAllBlocks() {
-        for(Map.Entry<ResourceLocation, BlockEntry<?>> def: blocks.entrySet()) {
-            ResourceLocation id = def.getKey();
+        for(Map.Entry<Identifier, BlockEntry<?>> def: blocks.entrySet()) {
+            Identifier id = def.getKey();
             BlockEntry<?> data = def.getValue();
             Block it = data.getFactory().get();
 
@@ -41,7 +43,7 @@ public class ModBlocks {
         }
     }
 
-    public static Map<ResourceLocation, BlockEntry<?>> getBlocks() {
+    public static Map<Identifier, BlockEntry<?>> getBlocks() {
         return Collections.unmodifiableMap(blocks);
     }
 
@@ -59,14 +61,14 @@ public class ModBlocks {
         }
 
         public Flow<B> withItem(Consumer<ModItems.ItemEntry<BlockItem>>  destination) {
-            return this.withConfiguredItem(destination, new Item.Properties());
+            return this.withConfiguredItem(destination, UnaryOperator.identity());
         }
 
-        public Flow<B> withConfiguredItem(Consumer<ModItems.ItemEntry<BlockItem>> destination, Item.Properties properties) {
-            return this.withCustomItem(destination, () -> new BlockItem(context.get(), properties));
+        public Flow<B> withConfiguredItem(Consumer<ModItems.ItemEntry<BlockItem>> destination, UnaryOperator<Item.Properties> properties) {
+            return this.withCustomItem(destination, props -> new BlockItem(context.get(), properties.apply(props.useBlockDescriptionPrefix())));
         }
 
-        public <I extends BlockItem> Flow<B> withCustomItem(Consumer<ModItems.ItemEntry<I>> destination, Supplier<I> factory) {
+        public <I extends BlockItem> Flow<B> withCustomItem(Consumer<ModItems.ItemEntry<I>> destination, Function<Item.Properties, I> factory) {
             ModItems.ItemEntry<I> item = ModItems.item(context.getIdentifier().getPath(), factory, null, true);
             destination.accept(item);
             return this;
@@ -74,7 +76,7 @@ public class ModBlocks {
     }
 
     public static class BlockEntry<B extends Block> extends AbstractRegistryReference<B> {
-        protected BlockEntry(ResourceLocation id, Supplier<B> factory) {
+        protected BlockEntry(Identifier id, Supplier<B> factory) {
             super(id, factory);
         }
     }
@@ -109,7 +111,7 @@ public class ModBlocks {
         }
 
         @Override
-        public ResourceLocation getIdentifier() {
+        public Identifier getIdentifier() {
             return this.source.getIdentifier();
         }
 

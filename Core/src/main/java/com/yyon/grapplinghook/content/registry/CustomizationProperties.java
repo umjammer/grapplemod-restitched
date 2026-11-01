@@ -7,7 +7,7 @@ import com.yyon.grapplinghook.content.customization.type.enums.CrouchToggle;
 import com.yyon.grapplinghook.content.customization.type.enums.RopeStyle;
 import com.yyon.grapplinghook.config.GrapplePropertyConfigLoader; // <-- ADD THIS
 import net.minecraft.core.Registry;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -16,22 +16,22 @@ import java.util.function.Supplier;
 
 public class CustomizationProperties {
 
-    private static final HashMap<ResourceLocation, Entry<?>> properties;
+    private static final HashMap<Identifier, Entry<?>> properties;
 
     static {
         properties = new LinkedHashMap<>();
     }
 
     private static <P extends CustomizationProperty<?>> Entry<P> property(String id, Supplier<P> type) {
-        ResourceLocation qualId = GrappleMod.id(id);
+        Identifier qualId = GrappleMod.id(id);
         Entry<P> entry = new Entry<>(qualId, type);
         properties.put(qualId, entry);
         return entry;
     }
 
     public static void registerAll() {
-        for (Map.Entry<ResourceLocation, Entry<?>> def : properties.entrySet()) {
-            ResourceLocation id = def.getKey();
+        for (Map.Entry<Identifier, Entry<?>> def : properties.entrySet()) {
+            Identifier id = def.getKey();
             Entry<?> data = def.getValue();
             CustomizationProperty<?> it = data.getFactory().get();
 
@@ -180,7 +180,7 @@ public class CustomizationProperties {
             property("failed_data_upgrade", () -> new IntegerProperty(0, 0, 1000));
 
     public static class Entry<T extends CustomizationProperty<?>> extends AbstractRegistryReference<T> {
-        protected Entry(ResourceLocation id, Supplier<T> factory) {
+        protected Entry(Identifier id, Supplier<T> factory) {
             super(id, factory);
         }
     }

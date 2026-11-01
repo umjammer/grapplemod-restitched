@@ -2,6 +2,7 @@ package com.yyon.grapplinghook.mixin;
 
 import com.yyon.grapplinghook.content.item.LongFallBootsItem;
 import com.yyon.grapplinghook.util.SharedDamageHandler;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
@@ -21,20 +22,20 @@ public abstract class LivingEntityDamageHandlerMixin {
         SharedDamageHandler.handleDeath((Entity) (Object) this);
     }
 
-    @Inject(method = "actuallyHurt(Lnet/minecraft/world/damagesource/DamageSource;F)V", at = @At("HEAD"), cancellable = true)
-    public void handleDamage(DamageSource source, float damage, CallbackInfo ci){
-        Entity thiss = (Entity) (Object) this;
+    @Inject(method = "actuallyHurt(Lnet/minecraft/server/level/ServerLevel;Lnet/minecraft/world/damagesource/DamageSource;F)V", at = @At("HEAD"), cancellable = true)
+    public void handleDamage(ServerLevel level, DamageSource source, float damage, CallbackInfo ci){
+        LivingEntity thiss = (LivingEntity) (Object) this;
 
-        if(thiss.isInvulnerableTo(source)) return;
+        if(thiss.isInvulnerableTo(level, source)) return;
         if(SharedDamageHandler.handleDamage((Entity) (Object) this, source)) ci.cancel();
     }
 
-    @Inject(method = "causeFallDamage(FFLnet/minecraft/world/damagesource/DamageSource;)Z", at = @At("HEAD"), cancellable = true)
-    public void handleFall(float fallDistance, float multiplier, DamageSource source, CallbackInfoReturnable<Boolean> cir) {
+    @Inject(method = "causeFallDamage(DFLnet/minecraft/world/damagesource/DamageSource;)Z", at = @At("HEAD"), cancellable = true)
+    public void handleFall(double fallDistance, float multiplier, DamageSource source, CallbackInfoReturnable<Boolean> cir) {
         Entity thiss = (Entity) (Object) this;
         if (thiss instanceof Player player) {
 
-            for (ItemStack armorStack : player.getArmorSlots()) {
+            for (ItemStack armorStack : com.yyon.grapplinghook.util.GrappleModUtils.armorItems(player)) {
                 if(armorStack == null) continue;
                 if(armorStack.getItem() instanceof LongFallBootsItem)
                     cir.setReturnValue(false);

@@ -7,23 +7,24 @@ import com.yyon.grapplinghook.content.item.smithing.LongFallBootsTemplateItem;
 import com.yyon.grapplinghook.content.registry.helper.AbstractRegistryReference;
 import com.yyon.grapplinghook.content.registry.helper.TabBuilder;
 import com.yyon.grapplinghook.content.customization.HookTemplates;
-import net.fabricmc.fabric.api.itemgroup.v1.FabricItemGroup;
+import net.fabricmc.fabric.api.creativetab.v1.FabricCreativeModeTab;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.*;
 
 import java.util.*;
+import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 public final class ModItems {
 
-    private static final ArrayList<ResourceLocation> itemsInRegistryOrder;
-    private static final HashMap<ResourceLocation, ItemEntry<?>> items;
+    private static final ArrayList<Identifier> itemsInRegistryOrder;
+    private static final HashMap<Identifier, ItemEntry<?>> items;
 
     static {
         items = new HashMap<>();
@@ -54,23 +55,25 @@ public final class ModItems {
 
     private static final ResourceKey<CreativeModeTab> ITEM_GROUP_KEY = ResourceKey.create(Registries.CREATIVE_MODE_TAB, GrappleMod.id("main"));
 
-    private static final CreativeModeTab ITEM_GROUP = FabricItemGroup.builder()
+    private static final CreativeModeTab ITEM_GROUP = FabricCreativeModeTab.builder()
             .title(Component.translatable("itemGroup.grapplemod.main"))
             .icon(() -> new ItemStack(GRAPPLING_HOOK.get()))
             .displayItems(MOD_TAB_GENERATOR)
             .build();
 
-    public static <I extends Item> ItemEntry<I> item(String id, Supplier<I> item) {
+    public static <I extends Item> ItemEntry<I> item(String id, Function<Item.Properties, I> item) {
         return item(id, item, null);
     }
 
-    public static <I extends Item> ItemEntry<I> item(String id, Supplier<I> item, TabBuilder tabProvider) {
+    public static <I extends Item> ItemEntry<I> item(String id, Function<Item.Properties, I> item, TabBuilder tabProvider) {
         return item(id, item, tabProvider, false);
     }
 
-    public static <I extends Item> ItemEntry<I> item(String id, Supplier<I> item, TabBuilder tabProvider, boolean placeFirstInCreative) {
-        ResourceLocation qualId = GrappleMod.id(id);
-        ItemEntry<I> entry = new ItemEntry<>(qualId, item, tabProvider);
+    public static <I extends Item> ItemEntry<I> item(String id, Function<Item.Properties, I> item, TabBuilder tabProvider, boolean placeFirstInCreative) {
+        Identifier qualId = GrappleMod.id(id);
+        // Item.Properties must know the item's id before the item is constructed.
+        ResourceKey<Item> key = ResourceKey.create(Registries.ITEM, qualId);
+        ItemEntry<I> entry = new ItemEntry<>(qualId, () -> item.apply(new Item.Properties().setId(key)), tabProvider);
 
         if(ModItems.items.containsKey(qualId))
             throw new IllegalStateException("Duplicate item registered");
@@ -87,8 +90,8 @@ public final class ModItems {
     }
 
     public static void registerAllItems() {
-        for(Map.Entry<ResourceLocation, ItemEntry<?>> def: items.entrySet()) {
-            ResourceLocation id = def.getKey();
+        for(Map.Entry<Identifier, ItemEntry<?>> def: items.entrySet()) {
+            Identifier id = def.getKey();
             ItemEntry<?> data = def.getValue();
             Item it = data.getFactory().get();
 
@@ -104,7 +107,7 @@ public final class ModItems {
 
         protected TabBuilder tabProvider;
 
-        protected ItemEntry(ResourceLocation id, Supplier<I> factory, TabBuilder creativeTabProvider) {
+        protected ItemEntry(Identifier id, Supplier<I> factory, TabBuilder creativeTabProvider) {
             super(id, factory);
 
             this.tabProvider = creativeTabProvider == null

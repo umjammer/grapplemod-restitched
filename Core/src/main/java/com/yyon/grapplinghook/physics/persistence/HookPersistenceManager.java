@@ -9,6 +9,8 @@ import com.yyon.grapplinghook.physics.ServerHookEntityTracker;
 import com.yyon.grapplinghook.physics.attach.HookAttachment;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.resources.ResourceKey;
@@ -28,37 +30,33 @@ public final class HookPersistenceManager {
 
     private HookPersistenceManager() {}
 
-    public static void saveForPlayer(ServerPlayer player, CompoundTag parent) {
+    // Player data is written through ValueOutput/ValueInput now; the on-disk layout
+    // (a list of compound tags under NBT_ROOT) is unchanged.
+    public static void saveForPlayer(ServerPlayer player, ValueOutput output) {
         Set<GrapplinghookEntity> hooks = ServerHookEntityTracker.getHooksThrownBy(player);
-        ListTag list = new ListTag();
+        List<CompoundTag> tags = new ArrayList<>();
         for (GrapplinghookEntity hook : hooks) {
             if (hook == null || !hook.isAlive()) continue;
             PersistedHook ph = PersistedHook.capture(hook);
             if (ph == null) continue;
-            list.add(ph.toNbt());
+            tags.add(ph.toNbt());
         }
-        if (list.isEmpty()) {
-            parent.remove(NBT_ROOT);
+        if (tags.isEmpty()) {
+            output.discard(NBT_ROOT);
         } else {
-            parent.put(NBT_ROOT, list);
+            ValueOutput.TypedOutputList<CompoundTag> list = output.list(NBT_ROOT, CompoundTag.CODEC);
+            tags.forEach(list::add);
         }
     }
 
-    public static void loadForPlayer(ServerPlayer player, CompoundTag parent) {
-        if (!parent.contains(NBT_ROOT, Tag.TAG_LIST)) {
-            pending.remove(player.getUUID());
-            return;
-        }
-        ListTag list = parent.getList(NBT_ROOT, Tag.TAG_COMPOUND);
-        List<Pending> entries = new ArrayList<>(list.size());
-        for (int i = 0; i < list.size(); i++) {
-            PersistedHook ph = PersistedHook.fromNbt(list.getCompound(i));
+    public static void loadForPlayer(ServerPlayer player, ValueInput input) {
+        List<Pending> entries = new ArrayList<>();
+        input.listOrEmpty(NBT_ROOT, CompoundTag.CODEC).stream().forEach(tag -> {
+            PersistedHook ph = PersistedHook.fromNbt(tag);
             if (ph != null) entries.add(new Pending(ph));
-        }
+        });
         if (entries.isEmpty()) pending.remove(player.getUUID());
         else pending.put(player.getUUID(), entries);
-
-        parent.remove(NBT_ROOT);
     }
 
     public static void tickServer(MinecraftServer server) {
@@ -88,7 +86,7 @@ public final class HookPersistenceManager {
         if (player.level() != level) {
             if (pr.ticks > GRACE_TICKS) {
                 GrappleMod.LOGGER.info("Dropping persisted hook: player {} not in dimension {} after {} ticks",
-                        player.getGameProfile().getName(), ph.dimension(), pr.ticks);
+                        player.getGameProfile().name(), ph.dimension(), pr.ticks);
                 return true;
             }
             return false;
@@ -104,7 +102,7 @@ public final class HookPersistenceManager {
         if (resolved == null) {
             if (pr.ticks <= GRACE_TICKS && ph.attachment().mayBecomeAvailableLater(level)) return false;
             GrappleMod.LOGGER.info("Dropping persisted hook for {}: anchor no longer resolvable",
-                    player.getGameProfile().getName());
+                    player.getGameProfile().name());
             notifyClientDetach(player);
             return true;
         }

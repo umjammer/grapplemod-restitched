@@ -237,13 +237,13 @@ public sealed interface HookAttachment
         @Override public boolean follow(GrapplinghookEntity hook, SubLevelIntegration sli) {
             try {
                 if (!sli.isSubLevelLoaded(subLevelId)) {
-                    if (!hook.level().isClientSide) {
+                    if (!hook.level().isClientSide()) {
                         hook.onAttachedEntityPerished();
                         return false;
                     }
                     return true;
                 }
-                if (!hook.level().isClientSide && !sli.isPlotBlockSolid(subLevelId, plotBlock)) {
+                if (!hook.level().isClientSide() && !sli.isPlotBlockSolid(subLevelId, plotBlock)) {
                     if (HookAnchorMigration.tryMigrate(hook, sli, this)) return false;
                     hook.onAttachedEntityPerished();
                     return false;
@@ -254,7 +254,7 @@ public sealed interface HookAttachment
                 return true;
             } catch (Throwable err) {
                 GrappleMod.LOGGER.error("[Grapple <-> Sable] Follow tick threw on side={} — detaching so we don't spin on this",
-                        hook.level().isClientSide ? "CLIENT" : "SERVER", err);
+                        hook.level().isClientSide() ? "CLIENT" : "SERVER", err);
                 hook.onAttachedEntityPerished();
                 return false;
             }

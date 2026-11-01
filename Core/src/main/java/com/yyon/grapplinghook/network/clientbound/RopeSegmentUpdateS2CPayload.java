@@ -10,7 +10,7 @@ import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import org.jetbrains.annotations.NotNull;
 
 /*
@@ -33,7 +33,7 @@ import org.jetbrains.annotations.NotNull;
 public record RopeSegmentUpdateS2CPayload(int hookId, boolean shouldAdd, int index, Vec pos,
 										  NullableDirection topFacing, NullableDirection bottomFacing,
 										  AnchorSpace space) implements S2CPayload {
-	public static final ResourceLocation IDENTIFIER = GrappleMod.id("rope_segment_update");
+	public static final Identifier IDENTIFIER = GrappleMod.id("rope_segment_update");
 	public static final CustomPacketPayload.Type<RopeSegmentUpdateS2CPayload> PAYLOAD_TYPE = new Type<>(IDENTIFIER);
 
 	public static final StreamCodec<RegistryFriendlyByteBuf, RopeSegmentUpdateS2CPayload> STREAM_CODEC = new StreamCodec<>() {

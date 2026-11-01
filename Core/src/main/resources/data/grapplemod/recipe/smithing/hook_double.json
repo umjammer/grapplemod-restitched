@@ -1,8 +1,9 @@
 {
-    "type": "grapplemod:hook_upgrade",
-
-    "template": { "item": "grapplemod:base_upgrade" },
-    "addition": { "item": "grapplemod:grappling_hook" },
-
-    "applies": [ "grapplemod:double_hook", "grapplemod:double_smart_motor" ]
+  "type": "grapplemod:hook_upgrade",
+  "template": "grapplemod:base_upgrade",
+  "addition": "grapplemod:grappling_hook",
+  "applies": [
+    "grapplemod:double_hook",
+    "grapplemod:double_smart_motor"
+  ]
 }

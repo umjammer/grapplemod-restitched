@@ -4,7 +4,7 @@ import com.yyon.grapplinghook.GrappleMod;
 import com.yyon.grapplinghook.content.registry.helper.AbstractRegistryReference;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 
 import java.util.HashMap;
@@ -13,14 +13,14 @@ import java.util.function.Supplier;
 
 public class ModBlockEntities {
 
-    private static final HashMap<ResourceLocation, BlockEntityEntry<?>> blockEntities;
+    private static final HashMap<Identifier, BlockEntityEntry<?>> blockEntities;
 
     static {
         blockEntities = new HashMap<>();
     }
 
     public static <E extends BlockEntityType<?>> BlockEntityEntry<E> blockEntity(String id, Supplier<E> type) {
-        ResourceLocation qualId = GrappleMod.id(id);
+        Identifier qualId = GrappleMod.id(id);
         BlockEntityEntry<E> entry = new BlockEntityEntry<>(qualId, type);
         blockEntities.put(qualId, entry);
         return entry;
@@ -28,8 +28,8 @@ public class ModBlockEntities {
 
 
     public static void registerAllBlockEntities() {
-        for(Map.Entry<ResourceLocation, BlockEntityEntry<?>> def: blockEntities.entrySet()) {
-            ResourceLocation id = def.getKey();
+        for(Map.Entry<Identifier, BlockEntityEntry<?>> def: blockEntities.entrySet()) {
+            Identifier id = def.getKey();
             BlockEntityEntry<?> data = def.getValue();
             BlockEntityType<?> it = data.getFactory().get();
 
@@ -40,7 +40,7 @@ public class ModBlockEntities {
 
     public static class BlockEntityEntry<T extends BlockEntityType<?>> extends AbstractRegistryReference<T> {
 
-        protected BlockEntityEntry(ResourceLocation id, Supplier<T> factory) {
+        protected BlockEntityEntry(Identifier id, Supplier<T> factory) {
             super(id, factory);
         }
     }

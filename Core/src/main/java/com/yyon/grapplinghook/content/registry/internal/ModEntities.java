@@ -3,10 +3,11 @@ package com.yyon.grapplinghook.content.registry.internal;
 import com.yyon.grapplinghook.GrappleMod;
 import com.yyon.grapplinghook.content.entity.grapplinghook.GrapplinghookEntity;
 import com.yyon.grapplinghook.content.registry.helper.AbstractRegistryReference;
-import net.fabricmc.fabric.api.object.builder.v1.entity.FabricEntityTypeBuilder;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.EntityDimensions;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.MobCategory;
@@ -17,14 +18,14 @@ import java.util.function.Supplier;
 
 public class ModEntities {
 
-    private static final HashMap<ResourceLocation, EntityEntry<?>> entities;
+    private static final HashMap<Identifier, EntityEntry<?>> entities;
 
     static {
         entities = new HashMap<>();
     }
 
     public static <E extends EntityType<?>> EntityEntry<E> entity(String id, Supplier<E> type) {
-        ResourceLocation qualId = GrappleMod.id(id);
+        Identifier qualId = GrappleMod.id(id);
         EntityEntry<E> entry = new EntityEntry<>(qualId, type);
         entities.put(qualId, entry);
         return entry;
@@ -32,8 +33,8 @@ public class ModEntities {
 
 
     public static void registerAllEntities() {
-        for(Map.Entry<ResourceLocation, EntityEntry<?>> def: entities.entrySet()) {
-            ResourceLocation id = def.getKey();
+        for(Map.Entry<Identifier, EntityEntry<?>> def: entities.entrySet()) {
+            Identifier id = def.getKey();
             EntityEntry<?> data = def.getValue();
             EntityType<?> it = data.getFactory().get();
 
@@ -42,17 +43,17 @@ public class ModEntities {
     }
 
     public static final EntityEntry<EntityType<GrapplinghookEntity>> GRAPPLE_HOOK = ModEntities
-            .entity("grapplehook", () -> FabricEntityTypeBuilder.<GrapplinghookEntity>
-                     create(MobCategory.MISC, GrapplinghookEntity::new)
-                    .dimensions(EntityDimensions.fixed(0.25f, 0.25f))
-                    .build()
+            .entity("grapplehook", () -> EntityType.Builder
+                    .<GrapplinghookEntity>of(GrapplinghookEntity::new, MobCategory.MISC)
+                    .sized(0.25f, 0.25f)
+                    .build(ResourceKey.create(Registries.ENTITY_TYPE, GrappleMod.id("grapplehook")))
             );
 
 
 
     public static class EntityEntry<T extends EntityType<?>> extends AbstractRegistryReference<T> {
 
-        protected EntityEntry(ResourceLocation id, Supplier<T> factory) {
+        protected EntityEntry(Identifier id, Supplier<T> factory) {
             super(id, factory);
         }
     }

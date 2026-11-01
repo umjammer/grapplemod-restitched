@@ -8,7 +8,7 @@ import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.item.ItemStack;
@@ -33,7 +33,7 @@ import org.jetbrains.annotations.NotNull;
 
 public record KeypressC2SPayload(IGlobalKeyObserver.Keys key, boolean isDown) implements C2SPayload {
 
-	public static final ResourceLocation IDENTIFIER = GrappleMod.id("keypress");
+	public static final Identifier IDENTIFIER = GrappleMod.id("keypress");
 	public static final CustomPacketPayload.Type<KeypressC2SPayload> PAYLOAD_TYPE = new Type<>(IDENTIFIER);
 
 	public static final StreamCodec<RegistryFriendlyByteBuf, KeypressC2SPayload> STREAM_CODEC = StreamCodec.composite(

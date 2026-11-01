@@ -1,4 +1,4 @@
-accessWidener v2 named
+accessWidener v2 official
 
 # 3D armour experimentation
 accessible method net/minecraft/client/model/geom/ModelLayers register (Ljava/lang/String;Ljava/lang/String;)Lnet/minecraft/client/model/geom/ModelLayerLocation;
@@ -9,8 +9,8 @@ accessible field net/minecraft/client/KeyMapping clickCount I
 accessible field net/minecraft/client/KeyMapping key Lcom/mojang/blaze3d/platform/InputConstants$Key;
 
 # Fixing Emissive Rendering via a new render type
-accessible class net/minecraft/client/renderer/RenderType$CompositeState
-accessible class net/minecraft/client/renderer/RenderStateShard$TextureStateShard
+# (removed for 26.x: RenderType$CompositeState no longer exists)
+# (removed for 26.x: RenderStateShard no longer exists)
 
 # UpgraderUpper - support replacing item ids in registry by changing the least amount of behaviour possible.
 accessible method net/minecraft/core/MappedRegistry getValueFromNullable (Lnet/minecraft/core/Holder$Reference;)Ljava/lang/Object;

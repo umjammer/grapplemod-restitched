@@ -9,12 +9,12 @@ import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.Entity;
 import org.jetbrains.annotations.NotNull;
 
 public record AddExtraEntityDataS2CPayload(int entityId, byte[] extraData) implements S2CPayload {
-    public static final ResourceLocation IDENTIFIER = GrappleMod.id("spawn_data");
+    public static final Identifier IDENTIFIER = GrappleMod.id("spawn_data");
     public static final CustomPacketPayload.Type<AddExtraEntityDataS2CPayload> PAYLOAD_TYPE = new Type<>(IDENTIFIER);
 
     public static final StreamCodec<RegistryFriendlyByteBuf, AddExtraEntityDataS2CPayload> STREAM_CODEC = StreamCodec.composite(

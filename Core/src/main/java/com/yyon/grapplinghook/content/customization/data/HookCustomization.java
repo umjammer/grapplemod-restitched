@@ -12,7 +12,7 @@ import net.minecraft.nbt.*;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
@@ -26,7 +26,7 @@ public final class HookCustomization {
 
 	// Very useful resource: https://wiki.fabricmc.net/tutorial:codec
 	// CODEC:
-	// properties: Map<ResourceLocation, Mixed-Type>
+	// properties: Map<Identifier, Mixed-Type>
 	//  - ... n
 	// crc32: long
 	public static final Codec<HookCustomization> CODEC = RecordCodecBuilder.create(builder -> builder.apply2(
@@ -221,14 +221,14 @@ public final class HookCustomization {
 	 * @return the associated property if found, else an empty optional
 	 */
 	private static Optional<CustomizationProperty<?>> tryParseProperty(String id) {
-		ResourceLocation identifier = ResourceLocation.tryParse(id);
+		Identifier identifier = Identifier.tryParse(id);
 
 		if(identifier == null)  {
 			GrappleMod.LOGGER.error("Unable to parse customization property key: '%s'".formatted(id));
 			return Optional.empty();
 		}
 
-		CustomizationProperty<?> property = GrappleModRegistries.CUSTOMIZATION_PROPERTIES.get(identifier);
+		CustomizationProperty<?> property = GrappleModRegistries.CUSTOMIZATION_PROPERTIES.getValue(identifier);
 
 		if(property == null) {
 			GrappleMod.LOGGER.error("Missing key for property: '%s' - are your mods synced with the server?".formatted(identifier.toString()));

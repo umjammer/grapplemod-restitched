@@ -7,12 +7,12 @@ import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import org.jetbrains.annotations.NotNull;
 
 public record PhysicsUpdateC2SPayload(PlayerPhysicsFrame frame) implements C2SPayload {
 
-    public static final ResourceLocation IDENTIFIER = GrappleMod.id("physics_update");
+    public static final Identifier IDENTIFIER = GrappleMod.id("physics_update");
     public static final CustomPacketPayload.Type<PhysicsUpdateC2SPayload> PAYLOAD_TYPE = new Type<>(IDENTIFIER);
 
     public static final StreamCodec<RegistryFriendlyByteBuf, PhysicsUpdateC2SPayload> STREAM_CODEC = StreamCodec.composite(

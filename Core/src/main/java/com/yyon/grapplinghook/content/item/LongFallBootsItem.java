@@ -1,11 +1,13 @@
 package com.yyon.grapplinghook.content.item;
 
+import java.util.function.Consumer;
+import net.minecraft.world.item.component.TooltipDisplay;
 import com.yyon.grapplinghook.content.registry.internal.ModArmourMaterials;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
-import net.minecraft.world.item.ArmorItem;
+import net.minecraft.world.item.equipment.ArmorType;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
@@ -29,16 +31,16 @@ import java.util.List;
     along with GrappleMod.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-public class LongFallBootsItem extends ArmorItem {
+public class LongFallBootsItem extends Item {
 
-	public LongFallBootsItem() {
-	    super(ModArmourMaterials.LONG_FALL_BOOTS.asHolder(), Type.BOOTS, new Item.Properties().stacksTo(1));
+	public LongFallBootsItem(Item.Properties properties) {
+	    super(ModArmourMaterials.applyArmour(properties.stacksTo(1), ModArmourMaterials.LONG_FALL_BOOTS, ArmorType.BOOTS));
 	}
 	
 	@Override
     @Environment(EnvType.CLIENT)
-	public void appendHoverText(ItemStack stack, TooltipContext context, List<Component> tooltipComponents, TooltipFlag tooltipFlag) {
-		tooltipComponents.add(Component
+	public void appendHoverText(ItemStack stack, TooltipContext context, TooltipDisplay display, Consumer<Component> tooltipComponents, TooltipFlag tooltipFlag) {
+		tooltipComponents.accept(Component
 				.translatable("grappletooltip.longfallboots.desc")
 				.withStyle(ChatFormatting.ITALIC, ChatFormatting.DARK_GRAY)
 		);

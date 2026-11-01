@@ -154,13 +154,13 @@ public sealed interface AnchorSpace
 
     static AnchorSpace readFromNbt(CompoundTag tag) {
         if (tag == null || !tag.contains(NBT_KIND)) return World.INSTANCE;
-        Kind kind = Kind.fromTag((byte) tag.getInt(NBT_KIND));
+        Kind kind = Kind.fromTag((byte) tag.getIntOr(NBT_KIND, 0));
         return switch (kind) {
             case WORLD -> World.INSTANCE;
             case SUBLEVEL -> new SubLevel(new UUID(
-                    tag.getLong(NBT_SUBLEVEL_UUID_MSB),
-                    tag.getLong(NBT_SUBLEVEL_UUID_LSB)));
-            case CONTRAPTION -> new Contraption(tag.getInt(NBT_CONTRAPTION_ID));
+                    tag.getLongOr(NBT_SUBLEVEL_UUID_MSB, 0L),
+                    tag.getLongOr(NBT_SUBLEVEL_UUID_LSB, 0L)));
+            case CONTRAPTION -> new Contraption(tag.getIntOr(NBT_CONTRAPTION_ID, 0));
         };
     }
 

@@ -7,7 +7,7 @@ import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 /**
  * Side: Both
@@ -19,13 +19,13 @@ import net.minecraft.resources.ResourceLocation;
 public final class PlayerPhysicsFrame {
 
     public static final Codec<PlayerPhysicsFrame> CODEC = RecordCodecBuilder.create(builder -> builder.group(
-            ResourceLocation.CODEC.fieldOf("physicsControllerType").forGetter(PlayerPhysicsFrame::getPhysicsControllerType),
+            Identifier.CODEC.fieldOf("physicsControllerType").forGetter(PlayerPhysicsFrame::getPhysicsControllerType),
             Codec.FLOAT.fieldOf("speed").forGetter(PlayerPhysicsFrame::getSpeed),
             Codec.BOOL.fieldOf("isUsingRocket").forGetter(PlayerPhysicsFrame::isUsingRocket)
     ).apply(builder, PlayerPhysicsFrame::new));
 
     public static final StreamCodec<RegistryFriendlyByteBuf, PlayerPhysicsFrame> STREAM_CODEC = StreamCodec.composite(
-            ResourceLocation.STREAM_CODEC,
+            Identifier.STREAM_CODEC,
             PlayerPhysicsFrame::getPhysicsControllerType,
             ByteBufCodecs.FLOAT,
             PlayerPhysicsFrame::getSpeed,
@@ -34,7 +34,7 @@ public final class PlayerPhysicsFrame {
             PlayerPhysicsFrame::new
     );
 
-    private ResourceLocation physicsControllerType;
+    private Identifier physicsControllerType;
 
     private float speed;
     private boolean isUsingRocket;
@@ -47,13 +47,13 @@ public final class PlayerPhysicsFrame {
     }
 
     // designed for codecs, not really got any checks
-    private PlayerPhysicsFrame(ResourceLocation physicsControllerType, float speed, boolean isUsingRocket) {
+    private PlayerPhysicsFrame(Identifier physicsControllerType, float speed, boolean isUsingRocket) {
         this.physicsControllerType = physicsControllerType;
         this.speed = speed;
         this.isUsingRocket = isUsingRocket;
     }
 
-    public PlayerPhysicsFrame setPhysicsControllerType(ResourceLocation physicsControllerType) {
+    public PlayerPhysicsFrame setPhysicsControllerType(Identifier physicsControllerType) {
         this.physicsControllerType = physicsControllerType;
         return this;
     }
@@ -72,7 +72,7 @@ public final class PlayerPhysicsFrame {
         return this;
     }
 
-    public ResourceLocation getPhysicsControllerType() {
+    public Identifier getPhysicsControllerType() {
         return this.physicsControllerType;
     }
 

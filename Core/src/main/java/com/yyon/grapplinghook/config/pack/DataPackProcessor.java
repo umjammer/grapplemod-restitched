@@ -2,7 +2,7 @@ package com.yyon.grapplinghook.config.pack;
 
 import com.yyon.grapplinghook.GrappleMod;
 import net.fabricmc.fabric.api.resource.SimpleSynchronousResourceReloadListener;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.packs.resources.ResourceManager;
 
 import java.util.List;
@@ -13,7 +13,7 @@ import java.util.List;
  */
 public class DataPackProcessor implements SimpleSynchronousResourceReloadListener {
 
-    private static final ResourceLocation ID = GrappleMod.id("mod_data_configuration");
+    private static final Identifier ID = GrappleMod.id("mod_data_configuration");
 
     private final List<SimpleResourceProcessor> subProcessors;
 
@@ -26,7 +26,7 @@ public class DataPackProcessor implements SimpleSynchronousResourceReloadListene
     }
 
     @Override
-    public ResourceLocation getFabricId() {
+    public Identifier getFabricId() {
         return ID;
     }
 

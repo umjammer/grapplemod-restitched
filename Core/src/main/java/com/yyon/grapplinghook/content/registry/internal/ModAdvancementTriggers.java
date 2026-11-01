@@ -1,11 +1,13 @@
 package com.yyon.grapplinghook.content.registry.internal;
 
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.Registry;
 import com.yyon.grapplinghook.GrappleMod;
 import com.yyon.grapplinghook.content.advancement.trigger.PhysicsUpdateTrigger;
 import com.yyon.grapplinghook.content.registry.helper.AbstractRegistryReference;
-import net.minecraft.advancements.CriteriaTriggers;
-import net.minecraft.advancements.CriterionTrigger;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.advancements.triggers.CriteriaTriggers;
+import net.minecraft.advancements.triggers.CriterionTrigger;
+import net.minecraft.resources.Identifier;
 
 import java.util.LinkedHashSet;
 import java.util.function.Supplier;
@@ -33,13 +35,13 @@ public class ModAdvancementTriggers {
     public static void registerAllTriggers() {
         for(TriggerEntry<?> entry: advancementTriggers) {
             CriterionTrigger<?> it = entry.getFactory().get();
-            entry.finalize(CriteriaTriggers.register(entry.getIdentifier().toString(), it));
+            entry.finalize(Registry.register(BuiltInRegistries.TRIGGER_TYPES, entry.getIdentifier(), it));
         }
     }
 
     public static class TriggerEntry<T extends CriterionTrigger<?>> extends AbstractRegistryReference<T> {
 
-        protected TriggerEntry(ResourceLocation id, Supplier<T> factory) {
+        protected TriggerEntry(Identifier id, Supplier<T> factory) {
             super(id, factory);
         }
 

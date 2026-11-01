@@ -2,7 +2,6 @@ package com.yyon.grapplinghook.client.gui.widget;
 
 import com.yyon.grapplinghook.content.customization.data.HookCustomization;
 import com.yyon.grapplinghook.content.customization.type.IntegerProperty;
-import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.AbstractSliderButton;
 import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.network.chat.Component;
@@ -47,11 +46,6 @@ public class SteppedCustomizationSlider extends AbstractSliderButton implements 
 
         this.customizations.get().set(this.option, newVal);
         this.onValueUpdate.run();
-    }
-
-    @Override
-    public void renderWidget(GuiGraphics gui, int mouseX, int mouseY, float partialTicks) {
-        super.renderWidget(gui, mouseX, mouseY, partialTicks);
     }
 
     @Override

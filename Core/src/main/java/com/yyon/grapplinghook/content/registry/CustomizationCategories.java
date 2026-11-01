@@ -4,7 +4,7 @@ import com.yyon.grapplinghook.GrappleMod;
 import com.yyon.grapplinghook.content.registry.helper.AbstractRegistryReference;
 import com.yyon.grapplinghook.content.customization.CustomizationCategory;
 import net.minecraft.core.Registry;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -16,14 +16,14 @@ import static com.yyon.grapplinghook.content.registry.CustomizationProperties.*;
 
 public class CustomizationCategories {
 
-    private static final HashMap<ResourceLocation, Entry<? extends CustomizationCategory>> categories;
+    private static final HashMap<Identifier, Entry<? extends CustomizationCategory>> categories;
 
     static {
         categories = new LinkedHashMap<>();
     }
 
     public static <P extends CustomizationCategory> Entry<P> category(String id, Supplier<P> type) {
-        ResourceLocation qualId = GrappleMod.id(id);
+        Identifier qualId = GrappleMod.id(id);
         Entry<P> entry = new Entry<>(qualId, type);
         categories.put(qualId, entry);
         return entry;
@@ -31,8 +31,8 @@ public class CustomizationCategories {
 
 
     public static void registerAll() {
-        for(Map.Entry<ResourceLocation, Entry<?>> def: categories.entrySet()) {
-            ResourceLocation id = def.getKey();
+        for(Map.Entry<Identifier, Entry<?>> def: categories.entrySet()) {
+            Identifier id = def.getKey();
             Entry<?> data = def.getValue();
             CustomizationCategory it = data.getFactory().get();
 
@@ -93,7 +93,7 @@ public class CustomizationCategories {
 
     public static class Entry<T extends CustomizationCategory> extends AbstractRegistryReference<T> {
 
-        protected Entry(ResourceLocation id, Supplier<T> factory) {
+        protected Entry(Identifier id, Supplier<T> factory) {
             super(id, factory);
         }
     }

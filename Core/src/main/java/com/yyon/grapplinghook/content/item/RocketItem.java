@@ -1,5 +1,7 @@
 package com.yyon.grapplinghook.content.item;
 
+import java.util.function.Consumer;
+import net.minecraft.world.item.component.TooltipDisplay;
 import com.google.common.collect.ImmutableSet;
 import com.yyon.grapplinghook.client.GrappleModClient;
 import com.yyon.grapplinghook.client.physics.controller.GrapplingHookPhysicsController;
@@ -12,9 +14,9 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.Options;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.InteractionHand;
-import net.minecraft.world.InteractionResultHolder;
+import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -47,30 +49,30 @@ import static com.yyon.grapplinghook.content.registry.CustomizationProperties.RO
 
 public class RocketItem extends Item {
 
-	private static final Set<ResourceLocation> SUPPORTED_TYPES = ImmutableSet.of(
+	private static final Set<Identifier> SUPPORTED_TYPES = ImmutableSet.of(
 			PhysicsControllers.AIR_FRICTION,
 			PhysicsControllers.FORCEFIELD
 	);
 
-	public RocketItem() {
-		super(new Properties().stacksTo(1));
+	public RocketItem(Properties properties) {
+		super(properties.stacksTo(1));
 	}
 
 	
     @Override
 	@NotNull
-    public InteractionResultHolder<ItemStack> use(Level worldIn, Player playerIn, InteractionHand hand) {
+    public InteractionResult use(Level worldIn, Player playerIn, InteractionHand hand) {
     	ItemStack stack = playerIn.getItemInHand(hand);
 
-		if (!worldIn.isClientSide)
-			return InteractionResultHolder.consume(stack);
+		if (!worldIn.isClientSide())
+			return InteractionResult.CONSUME;
 
 		GrapplingHookPhysicsController controller = GrappleModClient.get()
 				.getClientControllerManager()
 				.getController(playerIn.getId());
 
 		if(controller != null && !SUPPORTED_TYPES.contains(controller.getType()))
-			return InteractionResultHolder.pass(stack);
+			return InteractionResult.PASS;
 
 		// If we've already created/modified a controller for this item, we don't want
 		// to create another one as this'll just mess with regen time.
@@ -78,7 +80,7 @@ public class RocketItem extends Item {
 										  controller.areControlsOverridenByEquipment();
 
 		if(foundClashingController)
-			return InteractionResultHolder.pass(stack);
+			return InteractionResult.PASS;
 
 
 		HookCustomization volume = new HookCustomization();
@@ -86,25 +88,25 @@ public class RocketItem extends Item {
 		volume.set(IS_EQUIPMENT_OVERRIDE.get(), true);
 
 		GrappleModClient.get().getClientControllerManager().startRocket(playerIn, volume);
-		return InteractionResultHolder.success(stack);
+		return InteractionResult.SUCCESS;
 
 	}
     
 	@Override
 	@Environment(EnvType.CLIENT)
-	public void appendHoverText(ItemStack stack, TooltipContext context, List<Component> tooltipComponents, TooltipFlag tooltipFlag) {
+	public void appendHoverText(ItemStack stack, TooltipContext context, TooltipDisplay display, Consumer<Component> tooltipComponents, TooltipFlag tooltipFlag) {
 		Options options = Minecraft.getInstance().options;
 
-		tooltipComponents.add(Component
+		tooltipComponents.accept(Component
 				.translatable("grapple_tooltip.rocket_item.description")
 				.withStyle(ChatFormatting.DARK_GRAY, ChatFormatting.ITALIC));
-		tooltipComponents.add(Component.literal(""));
+		tooltipComponents.accept(Component.literal(""));
 
 
-		tooltipComponents.add(Component
+		tooltipComponents.accept(Component
 				.translatable("grappletooltip.controls.title")
 				.withStyle(ChatFormatting.GRAY, ChatFormatting.BOLD, ChatFormatting.UNDERLINE)
 		);
-		tooltipComponents.add(TextUtils.keybinding("grapple_tooltip.rocket_item.controls", options.keyUse));
+		tooltipComponents.accept(TextUtils.keybinding("grapple_tooltip.rocket_item.controls", options.keyUse));
 	}
 }

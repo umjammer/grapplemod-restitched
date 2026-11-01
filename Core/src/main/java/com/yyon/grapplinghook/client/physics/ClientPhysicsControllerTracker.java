@@ -19,7 +19,7 @@ import com.yyon.grapplinghook.util.Vec;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.core.BlockPos;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.InteractionHand;
@@ -142,7 +142,7 @@ public class ClientPhysicsControllerTracker {
 	}
 
 
-	public GrapplingHookPhysicsController createControl(ResourceLocation controllerId, int grapplehookEntityId, int playerId, Level world, BlockPos blockPos, HookCustomization custom) {
+	public GrapplingHookPhysicsController createControl(Identifier controllerId, int grapplehookEntityId, int playerId, Level world, BlockPos blockPos, HookCustomization custom) {
 		GrapplinghookEntity grapplinghookEntity = world.getEntity(grapplehookEntityId) instanceof GrapplinghookEntity g
 				? g
 				: null;
@@ -201,7 +201,7 @@ public class ClientPhysicsControllerTracker {
 
 		Entity e = world.getEntity(playerId);
 		if (e instanceof LocalPlayer p)
-			control.receivePlayerMovementMessage(p.input.leftImpulse, p.input.forwardImpulse, p.input.shiftKeyDown);
+			control.receivePlayerMovementMessage(p.input.getMoveVector().x, p.input.getMoveVector().y, p.input.keyPresses.shift());
 
 		if(e != null) {
 			GrappleModClientEvents.PHYSICS_APPLIED.invoker().onPhysicsApplied(e, controllerId);

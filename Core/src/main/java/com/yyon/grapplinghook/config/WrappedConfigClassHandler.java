@@ -4,7 +4,7 @@ import dev.isxander.yacl3.api.YetAnotherConfigLib;
 import dev.isxander.yacl3.config.v2.api.ConfigClassHandler;
 import dev.isxander.yacl3.config.v2.api.ConfigField;
 import dev.isxander.yacl3.config.v2.api.ConfigSerializer;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 import java.util.Set;
 
@@ -46,7 +46,7 @@ public record WrappedConfigClassHandler<T>(ConfigClassHandler<T> baseHandler, Se
     }
 
     @Override
-    public ResourceLocation id() {
+    public Identifier id() {
         return this.baseHandler.id();
     }
 

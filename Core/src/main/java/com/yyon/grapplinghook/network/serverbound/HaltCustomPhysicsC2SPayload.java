@@ -8,7 +8,7 @@ import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerPlayer;
 import org.jetbrains.annotations.NotNull;
 
@@ -34,7 +34,7 @@ import java.util.HashSet;
 // previously GrappleEndMessage
 public record HaltCustomPhysicsC2SPayload(int entityId, HashSet<Integer> hookEntityIds) implements C2SPayload {
 
-	public static final ResourceLocation IDENTIFIER = GrappleMod.id("grapple_end");
+	public static final Identifier IDENTIFIER = GrappleMod.id("grapple_end");
 	public static final CustomPacketPayload.Type<HaltCustomPhysicsC2SPayload> PAYLOAD_TYPE = new Type<>(IDENTIFIER);
 
 	public static final StreamCodec<RegistryFriendlyByteBuf, HaltCustomPhysicsC2SPayload> STREAM_CODEC = StreamCodec.composite(

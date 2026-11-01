@@ -2,21 +2,5 @@
     "parent": "item/handheld",
     "textures": {
         "layer0": "grapplemod:items/grapplinghook"
-    },
-	"overrides": [
-		{ "predicate": { "attached": 1 }, "model": "grapplemod:item/rope" },
-		{ "predicate": { "magnet": 1, "attached": 0 }, "model": "grapplemod:item/template/magnethook" },
-		{ "predicate": { "magnet": 1, "attached": 1 }, "model": "grapplemod:item/rope" },
-		{ "predicate": { "enderstaff": 1, "attached": 0 }, "model": "grapplemod:item/template/enderhook" },
-		{ "predicate": { "enderstaff": 1, "attached": 1 }, "model": "grapplemod:item/rope" },
-		{ "predicate": { "motor": 1, "attached": 0 }, "model": "grapplemod:item/template/smarthook" },
-		{ "predicate": { "motor": 1, "attached": 1 }, "model": "grapplemod:item/template/smarthookrope" },
-		{ "predicate": { "motor": 1, "double": 1, "attached": 0 }, "model": "grapplemod:item/template/doublemotorhook" },
-		{ "predicate": { "motor": 1, "double": 1, "attached": 1 }, "model": "grapplemod:item/template/doublemotorhookrope" },
-		{ "predicate": { "rocket": 1, "attached": 0 }, "model": "grapplemod:item/template/rockethook" },
-		{ "predicate": { "rocket": 1, "attached": 1 }, "model": "grapplemod:item/template/rockethookrope" },
-		{ "predicate": { "rocket": 1, "double": 1, "attached": 0 }, "model": "grapplemod:item/template/rocketdoublemotorhook" },
-		{ "predicate": { "rocket": 1, "double": 1, "attached": 1 }, "model": "grapplemod:item/template/rocketdoublemotorhookrope" },
-	    { "predicate": { "hook": 1 }, "model": "grapplemod:item/hook" }
-	]
+    }
 }

@@ -11,7 +11,7 @@
         "crafted_long_fall_boots": {
             "trigger": "minecraft:recipe_crafted",
             "conditions": {
-                "recipe_id": "grapplemod:smithing/long_fall_boots"
+                "recipes": "grapplemod:smithing/long_fall_boots"
             }
         }
     },

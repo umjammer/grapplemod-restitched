@@ -7,16 +7,17 @@ import net.minecraft.client.model.geom.builders.CubeDeformation;
 import net.minecraft.client.model.geom.builders.CubeListBuilder;
 import net.minecraft.client.model.geom.builders.MeshDefinition;
 import net.minecraft.client.model.geom.builders.PartDefinition;
-import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.client.model.geom.builders.LayerDefinition;
+import net.minecraft.client.renderer.entity.state.HumanoidRenderState;
 
-public class LongFallBootsModel<T extends LivingEntity> extends HumanoidModel<T> {
+public class LongFallBootsModel extends HumanoidModel<HumanoidRenderState> {
 
     public LongFallBootsModel(ModelPart root) {
         super(root);
     }
 
 
-    public static MeshDefinition createBodyLayer() {
+    public static LayerDefinition createBodyLayer() {
         CubeDeformation outerArmourDeform = new CubeDeformation(0.5f);
         MeshDefinition meshDefinition = HumanoidModel.createMesh(outerArmourDeform, 0.0f);
         PartDefinition partDefinition = meshDefinition.getRoot();
@@ -47,7 +48,7 @@ public class LongFallBootsModel<T extends LivingEntity> extends HumanoidModel<T>
                 PartPose.offsetAndRotation(-0.3f, 7.0f, -2.3f, 0.50f, 0f, 0f)
         );
 
-        return meshDefinition;
+        return LayerDefinition.create(meshDefinition, 64, 32);
     }
 
 }

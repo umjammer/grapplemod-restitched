@@ -1,12 +1,17 @@
 {
     "parent": "grapplemod:core/long_fall_boots",
     "display": {
-        "title": { "translate": "advancement.grapplemod.core.long_fall_boots_big_fall.title" },
-        "description": { "translate": "advancement.grapplemod.core.long_fall_boots_big_fall.description" },
-        "icon": { "id": "minecraft:feather" },
+        "title": {
+            "translate": "advancement.grapplemod.core.long_fall_boots_big_fall.title"
+        },
+        "description": {
+            "translate": "advancement.grapplemod.core.long_fall_boots_big_fall.description"
+        },
+        "icon": {
+            "id": "minecraft:feather"
+        },
         "frame": "task"
     },
-
     "criteria": {
         "fell_far_with_boots": {
             "trigger": "minecraft:fall_from_height",
@@ -17,18 +22,19 @@
                     }
                 },
                 "player": {
-                    "equipment": {
-                        "feet": {
-                            "items": [
-                                "grapplemod:long_fall_boots"
-                            ]
+                    "type": "minecraft:entity_properties",
+                    "entity": "this",
+                    "predicate": {
+                        "minecraft:equipment": {
+                            "feet": {
+                                "items": "grapplemod:long_fall_boots"
+                            }
                         }
                     }
                 }
             }
         }
     },
-
     "requirements": [
         [
             "fell_far_with_boots"

@@ -1,0 +1,132 @@
+{
+  "model": {
+    "type": "minecraft:condition",
+    "property": "grapplemod:state",
+    "state": "hook",
+    "on_true": {
+      "type": "minecraft:model",
+      "model": "grapplemod:item/hook"
+    },
+    "on_false": {
+      "type": "minecraft:condition",
+      "property": "grapplemod:state",
+      "state": "rocket",
+      "on_true": {
+        "type": "minecraft:condition",
+        "property": "grapplemod:state",
+        "state": "double",
+        "on_true": {
+          "type": "minecraft:condition",
+          "property": "grapplemod:state",
+          "state": "attached",
+          "on_true": {
+            "type": "minecraft:model",
+            "model": "grapplemod:item/template/rocketdoublemotorhookrope"
+          },
+          "on_false": {
+            "type": "minecraft:model",
+            "model": "grapplemod:item/template/rocketdoublemotorhook"
+          }
+        },
+        "on_false": {
+          "type": "minecraft:condition",
+          "property": "grapplemod:state",
+          "state": "attached",
+          "on_true": {
+            "type": "minecraft:model",
+            "model": "grapplemod:item/template/rockethookrope"
+          },
+          "on_false": {
+            "type": "minecraft:model",
+            "model": "grapplemod:item/template/rockethook"
+          }
+        }
+      },
+      "on_false": {
+        "type": "minecraft:condition",
+        "property": "grapplemod:state",
+        "state": "motor",
+        "on_true": {
+          "type": "minecraft:condition",
+          "property": "grapplemod:state",
+          "state": "double",
+          "on_true": {
+            "type": "minecraft:condition",
+            "property": "grapplemod:state",
+            "state": "attached",
+            "on_true": {
+              "type": "minecraft:model",
+              "model": "grapplemod:item/template/doublemotorhookrope"
+            },
+            "on_false": {
+              "type": "minecraft:model",
+              "model": "grapplemod:item/template/doublemotorhook"
+            }
+          },
+          "on_false": {
+            "type": "minecraft:condition",
+            "property": "grapplemod:state",
+            "state": "attached",
+            "on_true": {
+              "type": "minecraft:model",
+              "model": "grapplemod:item/template/smarthookrope"
+            },
+            "on_false": {
+              "type": "minecraft:model",
+              "model": "grapplemod:item/template/smarthook"
+            }
+          }
+        },
+        "on_false": {
+          "type": "minecraft:condition",
+          "property": "grapplemod:state",
+          "state": "enderstaff",
+          "on_true": {
+            "type": "minecraft:condition",
+            "property": "grapplemod:state",
+            "state": "attached",
+            "on_true": {
+              "type": "minecraft:model",
+              "model": "grapplemod:item/rope"
+            },
+            "on_false": {
+              "type": "minecraft:model",
+              "model": "grapplemod:item/template/enderhook"
+            }
+          },
+          "on_false": {
+            "type": "minecraft:condition",
+            "property": "grapplemod:state",
+            "state": "magnet",
+            "on_true": {
+              "type": "minecraft:condition",
+              "property": "grapplemod:state",
+              "state": "attached",
+              "on_true": {
+                "type": "minecraft:model",
+                "model": "grapplemod:item/rope"
+              },
+              "on_false": {
+                "type": "minecraft:model",
+                "model": "grapplemod:item/template/magnethook"
+              }
+            },
+            "on_false": {
+              "type": "minecraft:condition",
+              "property": "grapplemod:state",
+              "state": "attached",
+              "on_true": {
+                "type": "minecraft:model",
+                "model": "grapplemod:item/rope"
+              },
+              "on_false": {
+                "type": "minecraft:model",
+                "model": "grapplemod:item/grappling_hook"
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
